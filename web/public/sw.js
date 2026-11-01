@@ -1,0 +1,260 @@
+// Generado por scripts/lista-sw.mjs — no lo edites a mano.
+// Guarda la app en el teléfono para que funcione sin señal en el gym.
+const VERSION = '8220cc6c12';
+const CACHE = 'gym-' + VERSION;
+const ARCHIVOS = [
+  "./",
+  "css/app.css",
+  "fonts/barlow-condensed-latin-600-normal.woff2",
+  "fonts/barlow-condensed-latin-700-normal.woff2",
+  "fonts/barlow-condensed-latin-800-normal.woff2",
+  "fonts/barlow-latin-400-normal.woff2",
+  "fonts/barlow-latin-500-normal.woff2",
+  "fonts/barlow-latin-600-normal.woff2",
+  "icono.svg",
+  "img/ej/abductor-0.webp",
+  "img/ej/abductor-1.webp",
+  "img/ej/aperturas-0.webp",
+  "img/ej/aperturas-1.webp",
+  "img/ej/band_pull_apart-0.webp",
+  "img/ej/band_pull_apart-1.webp",
+  "img/ej/bici-0.webp",
+  "img/ej/bici-1.webp",
+  "img/ej/bulgara-0.webp",
+  "img/ej/bulgara-1.webp",
+  "img/ej/caminadora-0.webp",
+  "img/ej/caminadora-1.webp",
+  "img/ej/circulos_brazos-0.webp",
+  "img/ej/circulos_brazos-1.webp",
+  "img/ej/circulos_cadera-0.webp",
+  "img/ej/circulos_cadera-1.webp",
+  "img/ej/circulos_hombros-0.webp",
+  "img/ej/circulos_hombros-1.webp",
+  "img/ej/cruces_polea-0.webp",
+  "img/ej/cruces_polea-1.webp",
+  "img/ej/crunch_maquina-0.webp",
+  "img/ej/crunch_maquina-1.webp",
+  "img/ej/crunch_polea-0.webp",
+  "img/ej/crunch_polea-1.webp",
+  "img/ej/cuerda-0.webp",
+  "img/ej/cuerda-1.webp",
+  "img/ej/curl_barra_ez-0.webp",
+  "img/ej/curl_barra_ez-1.webp",
+  "img/ej/curl_mancuernas-0.webp",
+  "img/ej/curl_mancuernas-1.webp",
+  "img/ej/curl_martillo-0.webp",
+  "img/ej/curl_martillo-1.webp",
+  "img/ej/curl_predicador-0.webp",
+  "img/ej/curl_predicador-1.webp",
+  "img/ej/dead_bug-0.webp",
+  "img/ej/dead_bug-1.webp",
+  "img/ej/desplante_caminando-0.webp",
+  "img/ej/desplante_caminando-1.webp",
+  "img/ej/dominadas-0.webp",
+  "img/ej/dominadas-1.webp",
+  "img/ej/dominadas_asistidas-0.webp",
+  "img/ej/dominadas_asistidas-1.webp",
+  "img/ej/elevacion_piernas-0.webp",
+  "img/ej/elevacion_piernas-1.webp",
+  "img/ej/elevacion_piernas_banco-0.webp",
+  "img/ej/elevacion_piernas_banco-1.webp",
+  "img/ej/eliptica-0.webp",
+  "img/ej/eliptica-1.webp",
+  "img/ej/encogimientos-0.webp",
+  "img/ej/encogimientos-1.webp",
+  "img/ej/escaladora-0.webp",
+  "img/ej/escaladora-1.webp",
+  "img/ej/est_cuadriceps-0.webp",
+  "img/ej/est_cuadriceps-1.webp",
+  "img/ej/est_espalda_alta-0.webp",
+  "img/ej/est_espalda_alta-1.webp",
+  "img/ej/est_flexor-0.webp",
+  "img/ej/est_flexor-1.webp",
+  "img/ej/est_gluteo-0.webp",
+  "img/ej/est_gluteo-1.webp",
+  "img/ej/est_hombro-0.webp",
+  "img/ej/est_hombro-1.webp",
+  "img/ej/est_isquios-0.webp",
+  "img/ej/est_isquios-1.webp",
+  "img/ej/est_nino-0.webp",
+  "img/ej/est_nino-1.webp",
+  "img/ej/est_pantorrilla-0.webp",
+  "img/ej/est_pantorrilla-1.webp",
+  "img/ej/est_pecho-0.webp",
+  "img/ej/est_pecho-1.webp",
+  "img/ej/est_triceps-0.webp",
+  "img/ej/est_triceps-1.webp",
+  "img/ej/extension-0.webp",
+  "img/ej/extension-1.webp",
+  "img/ej/face_pull-0.webp",
+  "img/ej/face_pull-1.webp",
+  "img/ej/femoral_acostado-0.webp",
+  "img/ej/femoral_acostado-1.webp",
+  "img/ej/femoral_sentado-0.webp",
+  "img/ej/femoral_sentado-1.webp",
+  "img/ej/fondos-0.webp",
+  "img/ej/fondos-1.webp",
+  "img/ej/fondos_maquina-0.webp",
+  "img/ej/fondos_maquina-1.webp",
+  "img/ej/gato_camello-0.webp",
+  "img/ej/gato_camello-1.webp",
+  "img/ej/gran_estiramiento-0.webp",
+  "img/ej/gran_estiramiento-1.webp",
+  "img/ej/hack-0.webp",
+  "img/ej/hack-1.webp",
+  "img/ej/hip_thrust-0.webp",
+  "img/ej/hip_thrust-1.webp",
+  "img/ej/hiperextension-0.webp",
+  "img/ej/hiperextension-1.webp",
+  "img/ej/inchworm-0.webp",
+  "img/ej/inchworm-1.webp",
+  "img/ej/jalon-0.webp",
+  "img/ej/jalon-1.webp",
+  "img/ej/jalon_cerrado-0.webp",
+  "img/ej/jalon_cerrado-1.webp",
+  "img/ej/lagartijas-0.webp",
+  "img/ej/lagartijas-1.webp",
+  "img/ej/lagartijas_inclinadas-0.webp",
+  "img/ej/lagartijas_inclinadas-1.webp",
+  "img/ej/laterales-0.webp",
+  "img/ej/laterales-1.webp",
+  "img/ej/pajaros_maquina-0.webp",
+  "img/ej/pajaros_maquina-1.webp",
+  "img/ej/pallof-0.webp",
+  "img/ej/pallof-1.webp",
+  "img/ej/pantorrilla_pie-0.webp",
+  "img/ej/pantorrilla_pie-1.webp",
+  "img/ej/pantorrilla_sentado-0.webp",
+  "img/ej/pantorrilla_sentado-1.webp",
+  "img/ej/pecho_dinamico-0.webp",
+  "img/ej/pecho_dinamico-1.webp",
+  "img/ej/peso_muerto-0.webp",
+  "img/ej/peso_muerto-1.webp",
+  "img/ej/plancha-0.webp",
+  "img/ej/plancha-1.webp",
+  "img/ej/plancha_lateral-0.webp",
+  "img/ej/plancha_lateral-1.webp",
+  "img/ej/prensa-0.webp",
+  "img/ej/prensa-1.webp",
+  "img/ej/press_banca-0.webp",
+  "img/ej/press_banca-1.webp",
+  "img/ej/press_frances-0.webp",
+  "img/ej/press_frances-1.webp",
+  "img/ej/press_hombro_mancuernas-0.webp",
+  "img/ej/press_hombro_mancuernas-1.webp",
+  "img/ej/press_hombro_maquina-0.webp",
+  "img/ej/press_hombro_maquina-1.webp",
+  "img/ej/press_inclinado-0.webp",
+  "img/ej/press_inclinado-1.webp",
+  "img/ej/press_militar-0.webp",
+  "img/ej/press_militar-1.webp",
+  "img/ej/press_pecho_maquina-0.webp",
+  "img/ej/press_pecho_maquina-1.webp",
+  "img/ej/puente_barra-0.webp",
+  "img/ej/puente_barra-1.webp",
+  "img/ej/puente_gluteo-0.webp",
+  "img/ej/puente_gluteo-1.webp",
+  "img/ej/pullover_polea-0.webp",
+  "img/ej/pullover_polea-1.webp",
+  "img/ej/remo_barra-0.webp",
+  "img/ej/remo_barra-1.webp",
+  "img/ej/remo_cardio-0.webp",
+  "img/ej/remo_cardio-1.webp",
+  "img/ej/remo_mancuerna-0.webp",
+  "img/ej/remo_mancuerna-1.webp",
+  "img/ej/remo_polea-0.webp",
+  "img/ej/remo_polea-1.webp",
+  "img/ej/remo_t-0.webp",
+  "img/ej/remo_t-1.webp",
+  "img/ej/rumano_barra-0.webp",
+  "img/ej/rumano_barra-1.webp",
+  "img/ej/rumano_mancuernas-0.webp",
+  "img/ej/rumano_mancuernas-1.webp",
+  "img/ej/sentadilla_barra-0.webp",
+  "img/ej/sentadilla_barra-1.webp",
+  "img/ej/sentadilla_goblet-0.webp",
+  "img/ej/sentadilla_goblet-1.webp",
+  "img/ej/sentadilla_libre-0.webp",
+  "img/ej/sentadilla_libre-1.webp",
+  "img/ej/step_up-0.webp",
+  "img/ej/step_up-1.webp",
+  "img/ej/triceps_cuerda-0.webp",
+  "img/ej/triceps_cuerda-1.webp",
+  "img/ej/triceps_polea-0.webp",
+  "img/ej/triceps_polea-1.webp",
+  "img/ej/triceps_tras_nuca-0.webp",
+  "img/ej/triceps_tras_nuca-1.webp",
+  "img/ej/zancadas-0.webp",
+  "img/ej/zancadas-1.webp",
+  "index.html",
+  "js/app.js",
+  "js/calc.js",
+  "js/datos/alimentos.js",
+  "js/datos/ejercicios.js",
+  "js/datos/guia.js",
+  "js/datos/menus.js",
+  "js/datos/programa.js",
+  "js/graficos.js",
+  "js/iconos.js",
+  "js/nativo.js",
+  "js/nucleo.js",
+  "js/store.js",
+  "js/util.js",
+  "js/vistas/bienvenida.js",
+  "js/vistas/comida.js",
+  "js/vistas/entreno.js",
+  "js/vistas/escaner.js",
+  "js/vistas/hoy.js",
+  "js/vistas/mas.js",
+  "js/vistas/progreso.js",
+  "js/vistas/sesion.js",
+  "vendor/zxing.min.js",
+];
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches
+      .open(CACHE)
+      .then((c) => c.addAll(ARCHIVOS))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches
+      .keys()
+      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('gym-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+function conTiempo(promesa, ms) {
+  return new Promise((ok, mal) => {
+    const t = setTimeout(() => mal(new Error('tiempo')), ms);
+    promesa.then((r) => { clearTimeout(t); ok(r); }, (e) => { clearTimeout(t); mal(e); });
+  });
+}
+
+self.addEventListener('fetch', (e) => {
+  const req = e.request;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
+  // Fotos, letras y librerías casi no cambian: primero la copia guardada
+  if (/^\/(img|fonts|vendor)\//.test(url.pathname)) {
+    e.respondWith(caches.match(req).then((r) => r || fetch(req)));
+    return;
+  }
+  // Lo demás: primero internet (para tener la versión nueva) y si no hay señal, la copia guardada
+  e.respondWith(
+    conTiempo(fetch(req), 3500)
+      .then((r) => {
+        if (r && r.ok) {
+          const copia = r.clone();
+          caches.open(CACHE).then((c) => c.put(req, copia));
+        }
+        return r;
+      })
+      .catch(() => caches.match(req).then((r) => r || (req.mode === 'navigate' ? caches.match('index.html') : Response.error())))
+  );
+});

@@ -1,0 +1,15 @@
+{
+  "name": "gym-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "sw": "node scripts/lista-sw.mjs",
+    "test": "node --test test/worker.test.mjs test/calc.test.mjs test/sw.test.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.0"
+  }
+}
