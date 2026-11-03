@@ -39,7 +39,10 @@ no existe, abre la copia que trae el APK. Los datos se guardan en Android, así 
 | --- | --- | --- |
 | Rutinas, ejercicios, alimentos, precios, menús, textos | `web/public/js/datos/` → push a `main` | Al abrir la app (si el Worker está conectado) |
 | Diseño o funciones | `web/public` → push a `main` | Al abrir la app |
-| Alarma, permisos, ícono | `android/` → compilar en Bitrise | Hay que instalar el APK nuevo |
+| Alarma, permisos, ícono | `android/` → compilar en Bitrise o con GitHub Actions | Hay que instalar el APK nuevo |
+
+Cada push a `main` que toca `android/` o `web/public/` compila el APK con GitHub Actions
+(`.github/workflows/apk.yml`) y lo deja en **Releases** como `Gymori-<versión>.apk`.
 
 Después de cambiar algo en `web/public` corre `node scripts/lista-sw.mjs` (dentro de `web/`) para que la copia
 sin internet quede al día; las pruebas avisan si se te olvida.
