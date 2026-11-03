@@ -3,7 +3,12 @@
 import { datos } from './nativo.js';
 import { hoy } from './util.js';
 
-const VERSION_DATOS = 1;
+const VERSION_DATOS = 2;
+
+const LV = [1, 2, 3, 4, 5];
+
+// Horario recomendado para levantarte 4:45, gym temprano y escuela de 12 a 5.
+export const HORARIO_RECOMENDADO = { desayuno: '07:15', comida: '11:15', colacion: '15:00', cena: '18:00', dormir: '20:45' };
 
 const DEFECTOS = {
   perfil: () => ({
@@ -12,7 +17,8 @@ const DEFECTOS = {
   }),
   config: () => ({
     onboarding: false, fase: 'f1', faseInicio: hoy(),
-    dias: { f1: [1, 3, 5], f2: [1, 3, 5], f3: [1, 2, 4, 5], f4: [1, 2, 3, 5, 6], f5: [1, 2, 3, 4, 5, 6] },
+    dias: { f1: [...LV], f2: [...LV], f3: [...LV], f4: [...LV], f5: [...LV] },
+    horario: { ...HORARIO_RECOMENDADO },
     tienda: 'bodega', aguaMeta: 12, apiBase: '', sonidoDescanso: true, horaAlarma: '05:00',
     checklist: ['creatina', 'pasos', 'proteina', 'sueno'],
   }),
@@ -32,6 +38,7 @@ const sucios = new Set();
 let timer = null;
 
 export function cargar() {
+  const leidos = {};
   for (const clave of CLAVES) {
     const crudo = datos.leer(clave);
     let valor = null;
@@ -42,9 +49,12 @@ export function cargar() {
         valor = null;
       }
     }
+    leidos[clave] = !!valor;
     estado[clave] = completar(DEFECTOS[clave](), valor);
   }
-  migrar();
+  // La versión 1 nunca guardó "meta": si hay datos sin meta, vienen de la versión 1
+  const version = leidos.meta ? estado.meta.version || 0 : leidos.config ? 1 : VERSION_DATOS;
+  migrar(version, !leidos.meta);
   return estado;
 }
 
@@ -60,8 +70,13 @@ function completar(base, valor) {
   return r;
 }
 
-function migrar() {
-  if ((estado.meta.version || 0) < VERSION_DATOS) {
+function migrar(v, guardarMeta = false) {
+  if (v < 2) {
+    // v2: la rutina pasó a ser tu split de lunes a viernes en todas las fases
+    estado.config.dias = { f1: [...LV], f2: [...LV], f3: [...LV], f4: [...LV], f5: [...LV] };
+    marcar('config');
+  }
+  if (guardarMeta || v < VERSION_DATOS) {
     estado.meta.version = VERSION_DATOS;
     marcar('meta');
   }
@@ -104,6 +119,7 @@ export function importarTodo(texto) {
       sucios.add(clave);
     }
   }
+  migrar(obj.datos.meta ? obj.datos.meta.version || 0 : 1, true);
   guardarYa();
 }
 
@@ -115,6 +131,10 @@ export function borrarTodo() {
 }
 
 // ---------- Atajos de lectura ----------
+export function horario() {
+  return { ...HORARIO_RECOMENDADO, ...((estado.config && estado.config.horario) || {}) };
+}
+
 export function registrosDia(fecha) {
   return estado.comida.dias[fecha] || [];
 }

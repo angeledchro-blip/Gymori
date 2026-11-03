@@ -29,7 +29,7 @@ export const GUIA = [
     id: 'agua', titulo: 'Agua y calor',
     texto: [
       'Con el calor de Sinaloa y el gym, apunta a 3 litros o más al día; más si sudas mucho. La orina clarita es buena señal.',
-      'Un suero (Electrolit o similar) ayuda los días que sudas a chorros, pero no es para diario: trae azúcar.',
+      'Un suero ayuda los días que sudas a chorros. Si es diario, que sea de 0 % azúcar (en Similares está el Hidratasim).',
     ],
   },
   {
@@ -78,7 +78,7 @@ export const GUIA = [
     texto: [
       'Doble progresión: cada ejercicio tiene un rango (por ejemplo 8 a 12). Usas el mismo peso hasta que haces 12 en todas las series; entonces subes el peso y vuelves a empezar desde 8.',
       'La app te dice el peso de la vez pasada y si te toca subir. Tú solo anota con honestidad.',
-      'Semana de descarga: desde la fase 3, cada cierto número de semanas bajas el volumen para que tu cuerpo se recupere y luego siga subiendo.',
+      'Semana de descarga: desde la fase 2, cada cierto número de semanas bajas el volumen para que tu cuerpo se recupere y luego siga subiendo.',
     ],
   },
   {

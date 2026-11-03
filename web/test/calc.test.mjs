@@ -9,7 +9,7 @@ import { EJ, EJERCICIOS, imagenes } from '../public/js/datos/ejercicios.js';
 import { FASES, RUTINAS, CALENTAMIENTOS, ENFRIAMIENTO } from '../public/js/datos/programa.js';
 import { AL, ALIMENTOS, TIENDAS } from '../public/js/datos/alimentos.js';
 import { MENUS, REPARTO } from '../public/js/datos/menus.js';
-import { hoy, sumarDias, lunesDe } from '../public/js/util.js';
+import { hoy, sumarDias, lunesDe, diaSemana } from '../public/js/util.js';
 
 const publico = fileURLToPath(new URL('../public/', import.meta.url));
 
@@ -137,15 +137,67 @@ test('progresión de pesos (doble progresión)', () => {
 
 test('rotación de rutinas, requisitos de fase y nivel', () => {
   reiniciar();
-  assert.equal(C.siguienteRutina().id, 'f1a');
+  estado.config.dias = { f1: [1, 2, 3, 4, 5] };
+  // la primera de la fase es la del día de la semana (lunes jalón … viernes posterior)
+  const dia = diaSemana(hoy());
+  assert.equal(C.siguienteRutina().id, dia <= 5 ? FASES[0].rotacion[dia - 1] : 'f1a');
   estado.entreno.sesiones = [{ id: 'a', fecha: hoy(), fase: 'f1', rutina: 'f1a', ejercicios: [], inicio: 0, fin: 1 }];
   assert.equal(C.siguienteRutina().id, 'f1b');
+  estado.entreno.sesiones = [{ id: 'a', fecha: hoy(), fase: 'f1', rutina: 'f1e', ejercicios: [], inicio: 0, fin: 1 }];
+  assert.equal(C.siguienteRutina().id, 'f1a');
   let req = C.requisitos(FASES[0]);
   assert.equal(req.cumple, false);
-  estado.entreno.sesiones = Array.from({ length: 8 }, (_, i) => ({ id: 's' + i, fecha: sumarDias(hoy(), -i * 2), fase: 'f1', rutina: i % 2 ? 'f1b' : 'f1a', ejercicios: [], xp: 100 }));
+  const ejs = ['prensa', 'jalon_supino', 'press_banca', 'remo_pecho'];
+  estado.entreno.sesiones = Array.from({ length: 16 }, (_, i) => ({
+    id: 's' + i, fecha: sumarDias(hoy(), i - 15), fase: 'f1', rutina: FASES[0].rotacion[i % 5], xp: 100,
+    ejercicios: ejs.map((ej) => ({ ej, series: [{ kg: 40 + i * 2.5, reps: 10, hecho: true }] })),
+  }));
   req = C.requisitos(FASES[0]);
   assert.equal(req.cumple, true);
   const n = C.nivel(1000);
   assert.ok(n.n >= 3 && n.pct >= 0 && n.pct < 1);
   assert.equal(C.e1rm(100, 5).toFixed(1), '116.7');
+});
+
+test('la rutina es de lunes a viernes, sin sentadilla búlgara', () => {
+  assert.ok(!EJ.bulgara, 'la búlgara sigue en el catálogo');
+  for (const r of Object.values(RUTINAS)) {
+    for (const e of r.ejercicios) assert.ok(e.ej !== 'bulgara' && !(e.alt || []).includes('bulgara'), r.id);
+  }
+  for (const f of FASES) {
+    assert.deepEqual(f.diasDefault, [1, 2, 3, 4, 5], f.id);
+    assert.equal(f.rotacion.length % 5, 0, f.id);
+  }
+  // cada día empieza con su básico
+  const primeros = FASES[0].rotacion.map((id) => RUTINAS[id].ejercicios[0].ej);
+  assert.deepEqual(primeros, ['remo_pecho', 'sentadilla_barra', 'press_banca', 'press_hombro_maquina', 'rumano_barra']);
+  assert.deepEqual(FASES[1].rotacion.map((id) => RUTINAS[id].ejercicios[0].reps), [[5, 6], [4, 6], [4, 6], [6, 8], [5, 6]]);
+});
+
+test('si cambia el rango, el peso sale de tu marca; si no, doble progresión', () => {
+  reiniciar();
+  const ses = (id, fecha, plan, series) => ({ id, fecha, fase: 'f1', rutina: 'f1b', ejercicios: [{ ej: 'sentadilla_barra', plan, series: series.map(([kg, reps]) => ({ kg, reps, hecho: true })) }] });
+  const tec = { ej: 'sentadilla_barra', series: 3, reps: [8, 8], rir: 3, desc: 150 };
+  const fuerza = { ej: 'sentadilla_barra', series: 4, reps: [4, 6], rir: 2, desc: 180 };
+  estado.entreno.sesiones = [ses('a', '2026-10-01', tec, [[40, 8], [40, 8], [40, 8]])];
+  assert.equal(C.sugerencia(tec, 'sentadilla_barra').kg, 45);
+  const s = C.sugerencia(fuerza, 'sentadilla_barra');
+  assert.equal(s.tipo, 'nuevo');
+  assert.equal(s.kg, 42.5); // 40 × 8 ≈ 50.7 de 1RM → 42.5 para 6
+  // fase pro: semana pesada y de volumen no se mezclan
+  const pesado = { ej: 'sentadilla_barra', series: 5, reps: [2, 4], rir: 1, desc: 240 };
+  const volumen = { ej: 'sentadilla_barra', series: 3, reps: [8, 10], rir: 2, desc: 150 };
+  estado.entreno.sesiones = [ses('v', '2026-10-01', volumen, [[60, 10], [60, 10], [60, 10]]), ses('p', '2026-10-08', pesado, [[90, 3], [90, 3]])];
+  const sv = C.sugerencia(volumen, 'sentadilla_barra');
+  assert.equal(sv.tipo, 'subir');
+  assert.equal(sv.kg, 65);
+  // aproximación: con barra nunca menos de la barra vacía
+  assert.equal(C.aproximacion(20, EJ.sentadilla_barra, false), null);
+  assert.deepEqual(C.aproximacion(100, EJ.sentadilla_barra, true), [[8, 50], [5, 70], [3, 85]]);
+});
+
+test('Farmacias Similares está en las tiendas y no cuenta en el total del súper', () => {
+  const simi = TIENDAS.find((t) => t.id === 'simi');
+  assert.ok(simi && simi.total === false);
+  for (const id of ['creatina', 'proteina', 'energetica_sa', 'suero']) assert.ok(AL[id].precios.simi, id);
 });

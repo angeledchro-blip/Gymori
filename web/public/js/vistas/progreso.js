@@ -8,7 +8,7 @@ import { tendencia, objetivos, proyeccion, registrosPeso, pesoInicial, historial
 import { hojaPeso } from './hoy.js';
 
 let rango = 60;
-const LEVANTAMIENTOS = ['sentadilla_barra', 'press_banca', 'peso_muerto', 'prensa', 'press_pecho_maquina', 'jalon', 'remo_polea', 'press_hombro_mancuernas', 'rumano_barra', 'hip_thrust'];
+const LEVANTAMIENTOS = ['sentadilla_barra', 'press_banca', 'rumano_barra', 'remo_pecho', 'peso_muerto', 'press_militar', 'press_hombro_maquina', 'jalon_supino', 'pendulo', 'prensa', 'hip_thrust'];
 
 function bloquePeso() {
   const r = registrosPeso();

@@ -1,7 +1,7 @@
 // Comida: registro del día, plan sugerido, búsqueda de alimentos, plan semanal, súper y precios.
-import { estado, marcar } from '../store.js';
+import { estado, marcar, horario } from '../store.js';
 import { registrar, refrescar, ir } from '../nucleo.js';
-import { esc, hoy, uid, num, pesos, fechaCorta, sumarDias, lunesDe, diaSemana, diaCorto, deClave, abrirHoja, cerrarHoja, aviso, redondea } from '../util.js';
+import { esc, hoy, uid, num, pesos, fechaCorta, sumarDias, lunesDe, diaSemana, diaCorto, deClave, abrirHoja, cerrarHoja, aviso, redondea, hora12, minutosDe } from '../util.js';
 import { icono } from '../iconos.js';
 import { discoKcal, barraMacro } from '../graficos.js';
 import { AL, ALIMENTOS, CATEGORIAS, TIENDAS, unidadTexto } from '../datos/alimentos.js';
@@ -16,12 +16,23 @@ function horaAhora() {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+// La comida más cercana a la hora actual según tu horario
 function tiempoSugerido() {
-  const h = new Date().getHours();
-  if (h < 11) return 'desayuno';
-  if (h < 16) return 'comida';
-  if (h < 22) return 'cena';
-  return 'colacion';
+  const d = new Date();
+  const ahora = d.getHours() * 60 + d.getMinutes();
+  const h = horario();
+  let mejor = 'comida';
+  let dist = Infinity;
+  for (const [t] of TIEMPOS) {
+    const m = minutosDe(h[t]);
+    if (m === null) continue;
+    const x = Math.abs(ahora - m);
+    if (x < dist) {
+      dist = x;
+      mejor = t;
+    }
+  }
+  return mejor;
 }
 
 const FRAC = [[0.25, '¼'], [0.33, '⅓'], [0.5, '½'], [0.66, '⅔'], [0.75, '¾']];
@@ -93,7 +104,7 @@ function renderComida() {
     const p = plan[tid];
     const yaComido = mios.some((r) => r.origen === 'plan' && r.ref === p.menu.id);
     return `<section class="tiempo-comida">
-      <div class="tiempo-cabeza"><h3>${esc(nombre)}</h3><span class="tenue chico">${mios.length ? `${num(kcalT)} kcal` : `meta ≈ ${num(o.kcal * REPARTO[tid])} kcal`}</span></div>
+      <div class="tiempo-cabeza"><h3>${esc(nombre)} <span class="hora-tiempo">${esc(hora12(horario()[tid]))}</span></h3><span class="tenue chico">${mios.length ? `${num(kcalT)} kcal` : `meta ≈ ${num(o.kcal * REPARTO[tid])} kcal`}</span></div>
       ${mios
         .map((r) => `<div class="registro"><span class="fila-cuerpo"><span class="fila-titulo">${esc(r.nombre)}</span><span class="fila-sub" style="display:block">${num(r.kcal)} kcal, ${num(r.p)} g proteína${r.cantTexto ? ', ' + esc(r.cantTexto) : ''}</span></span><button class="quitar" data-a="com:quitar" data-id="${r.id}" aria-label="Quitar ${esc(r.nombre)}">${icono('cerrar')}</button></div>`)
         .join('')}
@@ -285,7 +296,9 @@ function hojaCambiar(fecha, t) {
 function renderSuper(lunes) {
   const l = listaSuper(lunes || lunesDe(hoy()));
   const comprados = estado.plan.comprados[l.lunes] || {};
-  const tiendasTotales = TIENDAS.filter((t) => t.id !== 'oxxo');
+  const tiendasTotales = TIENDAS.filter((t) => t.total !== false);
+  // solo las tiendas que tienen algo de la lista (Similares casi nunca, Oxxo a veces)
+  const columnas = TIENDAS.filter((t) => l.items.some((it) => it.tiendas[t.id]));
   const mejorTienda = tiendasTotales.reduce((m, t) => (!m || (l.totales[t.id].suma < l.totales[m.id].suma && l.totales[t.id].faltan <= l.totales[m.id].faltan) ? t : m), null);
   return `<header class="cabeza"><span class="cabeza-fecha"><a href="#/comida">Comida</a>, semana del ${esc(fechaCorta(l.lunes))}</span><h1 class="cabeza-titulo">Lista del súper</h1></header>
     <p class="tenue">Todo lo de tu plan para 7 días, con precios aproximados de noviembre 2026. Si en tu tienda está diferente, <a href="#/precios">corrígelo aquí</a>.</p>
@@ -295,7 +308,7 @@ function renderSuper(lunes) {
     <div class="aviso-caja olivo">Comprando cada cosa donde está más barata: <b>${pesos(l.combinado)}</b> a la semana.</div>
     <p class="tenue chico">Lo de despensa (arroz, avena, aceite, frijol…) te dura varias semanas, así que en el total solo cuenta lo que usas. En Ley, los martes son de fruta y verdura: ahí sale más barato surtir eso.</p>
     <table class="tabla-precios" style="margin-top:8px">
-      <thead><tr><th>Producto</th>${TIENDAS.map((t) => `<th>${esc(t.corto)}</th>`).join('')}</tr></thead>
+      <thead><tr><th>Producto</th>${columnas.map((t) => `<th>${esc(t.corto)}</th>`).join('')}</tr></thead>
       <tbody>${l.items
         .map((it) => {
           const c = it.mejor ? it.tiendas[it.mejor] : null;
@@ -303,7 +316,7 @@ function renderSuper(lunes) {
           const hecho = !!comprados[it.id];
           return `<tr class="${hecho ? 'comprado' : ''}">
             <td><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" data-c="super:comprado" data-l="${l.lunes}" data-id="${it.id}" ${hecho ? 'checked' : ''} style="width:20px;height:20px;margin-top:2px;accent-color:#aab757"><span><span style="${hecho ? 'text-decoration:line-through;color:var(--ceniza)' : 'font-weight:600'}">${esc(it.a.nombre)}</span><br><span class="mas-tenue mini">${esc(cantidadTexto(it.id, redondeoCantidad(it.id, it.cantidad)))}${cantidad ? ' → ' + esc(cantidad) : ''}</span></span></label></td>
-            ${TIENDAS.map((t) => {
+            ${columnas.map((t) => {
               const x = it.tiendas[t.id];
               if (!x) return '<td class="no-hay">—</td>';
               return `<td class="${t.id === it.mejor ? 'barato' : ''}">${pesos(x.costo)}${x.est ? '<span class="est">~</span>' : ''}</td>`;
@@ -312,7 +325,7 @@ function renderSuper(lunes) {
         })
         .join('')}</tbody>
     </table>
-    <p class="tenue mini" style="margin-top:10px">~ = precio estimado. Lo demás lo vi en las tiendas en línea de Walmart y Bodega Aurrera, folletos de Ley en Sinaloa y Oxxo en Rappi (nov 2026). Los precios cambian por sucursal.</p>`;
+    <p class="tenue mini" style="margin-top:10px">~ = precio estimado. Lo demás lo vi en las tiendas en línea de Walmart, Bodega Aurrera y Farmacias Similares, folletos de Ley en Sinaloa y Oxxo en Rappi (nov 2026). Los precios cambian por sucursal. Los suplementos de Similares están en <a href="#/precios">Precios</a>.</p>`;
 }
 
 // ---------- Precios ----------

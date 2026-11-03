@@ -1,16 +1,19 @@
 // Alimentos que encuentras en Guasave con precio aproximado (noviembre 2026).
-// Fuentes: tiendas en línea de Walmart y Bodega Aurrera (precios vistos en nov 2026),
+// Fuentes: tiendas en línea de Walmart, Bodega Aurrera y Farmacias Similares (precios vistos en nov 2026),
 // folletos de Casa Ley en Sinaloa (2026) y precios de Oxxo en Rappi. Lo marcado como
 // estimado es un cálculo aproximado: en Ajustes → Precios puedes poner lo que veas en tu tienda.
+// Similares: precio normal de su tienda en línea; seguido lo ponen con 25 % de descuento.
 //
 // Nutrientes por "base" unidades (100 g, 100 ml o 1 pieza): [kcal, proteína, carbos, grasa]
 // precios: tienda → [precio $, presentación, cuánto rinde en la unidad del alimento, estimado?]
 
+// total: false → no entra en los totales del súper (no surte todo)
 export const TIENDAS = [
   { id: 'bodega', nombre: 'Bodega Aurrera', corto: 'Bodega' },
   { id: 'walmart', nombre: 'Walmart', corto: 'Walmart' },
   { id: 'ley', nombre: 'Casa Ley', corto: 'Ley' },
-  { id: 'oxxo', nombre: 'Oxxo', corto: 'Oxxo' },
+  { id: 'oxxo', nombre: 'Oxxo', corto: 'Oxxo', total: false },
+  { id: 'simi', nombre: 'Farmacias Similares (Dr. Simi)', corto: 'Simi', total: false },
 ];
 
 export const CATEGORIAS = [
@@ -21,6 +24,7 @@ export const CATEGORIAS = [
   ['verdura', 'Verduras'],
   ['grasa', 'Grasas buenas'],
   ['oxxo', 'Para la chamba (Oxxo)'],
+  ['simi', 'Suplementos (Similares)'],
 ];
 
 const A = (id, nombre, cat, unidad, base, n, precios, extra = {}) => ({
@@ -70,8 +74,8 @@ export const ALIMENTOS = [
     walmart: [75, '100 g', 100, e], ley: [72, '100 g', 100, e],
   }, { nota: 'Muy alta en proteína; rinde con huevo. Ojo con la sal.', casera: [30, 'un puñito'], despensa: true }),
   A('proteina', 'Proteína en polvo (whey)', 'proteina', 'scoop', 1, [120, 24, 3, 1.5], {
-    walmart: [849, '907 g (≈30 scoops)', 30, e],
-  }, { nota: 'Solo si no llegas a tu proteína con comida.', despensa: true }),
+    walmart: [849, '907 g (≈30 scoops)', 30, e], simi: [439, 'XGear Whey 450 g (≈15 scoops)', 15],
+  }, { nota: 'Solo si no llegas a tu proteína con comida. En Similares también está la XGear Zero Carbs (450 g, mismo precio).', despensa: true }),
   A('soya', 'Soya texturizada', 'proteina', 'g', 100, [330, 50, 30, 1], {
     bodega: [24, '330 g', 330, e], walmart: [26, '330 g', 330, e], ley: [29, '330 g', 330, e],
   }, { nota: 'Peso en seco: se hidrata y rinde el triple. Queda bien en picadillo.', despensa: true }),
@@ -202,8 +206,19 @@ export const ALIMENTOS = [
     oxxo: [45, 'pieza', 1, e],
   }, { nota: 'Salvavidas si no llevaste comida; acompáñalo con agua, no con refresco.' }),
   A('energetica_sa', 'Bebida energética sin azúcar (473 ml)', 'oxxo', 'pza', 1, [10, 0, 2, 0], {
-    oxxo: [42, 'lata', 1, e], walmart: [36, 'lata', 1, e], bodega: [35, 'lata', 1, e],
+    oxxo: [42, 'lata', 1, e], walmart: [36, 'lata', 1, e], bodega: [35, 'lata', 1, e], simi: [49, 'lata XGear 473 ml', 1],
   }, { nota: 'Máximo una al día y antes del mediodía para que duermas bien.' }),
+
+  // ---------- Farmacias Similares (Dr. Simi) ----------
+  A('creatina', 'Creatina monohidratada (XGear)', 'simi', 'g', 100, [0, 0, 0, 0], {
+    simi: [450, '500 g (100 tomas de 5 g)', 500],
+  }, { nota: 'Toma 5 g diario, a la hora que sea. También viene de 150 g en $240.', casera: [5, '1 toma'], despensa: true }),
+  A('magnesio', 'Glicinato de magnesio en polvo', 'simi', 'g', 100, [0, 0, 0, 0], {
+    simi: [299, '135 g', 135],
+  }, { nota: 'Toma la porción que dice la etiqueta.', despensa: true }),
+  A('suero', 'Suero 0 % azúcar (Hidratasim 500 ml)', 'simi', 'pza', 1, [5, 0, 1, 0], {
+    simi: [25.5, 'botella', 1],
+  }, { nota: 'Para los días que sudas a chorros. También hay electrolitos XGear en sobre (10 por $99).' }),
 ];
 
 export const AL = Object.fromEntries(ALIMENTOS.map((a) => [a.id, a]));

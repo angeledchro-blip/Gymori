@@ -5,13 +5,15 @@ con precios de Guasave y una alarma que solo se apaga dejando presionado un bot�
 
 ## Qué trae
 
-- **Hoy**: qué rutina toca, calorías y macros que te quedan, agua, pendientes del día (creatina, pasos, proteína, sueño), peso y nivel.
-- **Entreno**: 5 fases (Regreso → Principiante → Intermedio → Avanzado → Pro) con requisitos para subir, calentamiento,
+- **Hoy**: qué rutina toca, calorías y macros que te quedan, horario del día (desayuno, comida, colación, cena y hora de dormir),
+  agua, pendientes del día (creatina, pasos, proteína, sueño), peso y nivel.
+- **Entreno**: rutina de lunes a viernes (jalón, pierna cuádriceps, empuje, hombro y torso, pierna posterior) con un básico
+  al inicio de cada día, en 5 fases (Técnica → Fuerza e hipertrofia → Intermedio → Avanzado → Pro) con requisitos para subir, calentamiento,
   series con peso de la vez pasada y sugerencia de cuánto subir (doble progresión), descanso con vibración,
   cardio y estiramientos. Cada ejercicio con fotos del movimiento y botón a video.
 - **Comida**: plan del día ajustado a tus calorías con comida de Guasave, registro rápido, búsqueda de alimentos,
   foto del plato (la IA calcula calorías e ingredientes), código de barras (Open Food Facts), plan semanal y
-  lista del súper con precios de Bodega Aurrera, Walmart, Casa Ley y Oxxo.
+  lista del súper con precios de Bodega Aurrera, Walmart, Casa Ley, Oxxo y Farmacias Similares (suplementos).
 - **Progreso**: gráfica de peso con promedio de 7 días, ritmo por semana, fecha estimada para llegar a la meta,
   ajuste automático de calorías, cintura, fuerza (1 rep estimada) y constancia.
 - **Alarma**: suena con volumen que va subiendo, sale encima del bloqueo y se apaga solo manteniendo el disco 10 s.
@@ -68,4 +70,4 @@ node --test test/*.test.mjs
 
 - Fotos de ejercicios: [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (dominio público).
 - Letra Barlow (SIL Open Font License), lector de códigos ZXing (Apache 2.0), datos de productos Open Food Facts (ODbL).
-- Precios aproximados de noviembre 2026: tiendas en línea de Walmart y Bodega Aurrera, folletos de Casa Ley en Sinaloa y Oxxo en Rappi.
+- Precios aproximados de noviembre 2026: tiendas en línea de Walmart, Bodega Aurrera y Farmacias Similares, folletos de Casa Ley en Sinaloa y Oxxo en Rappi.

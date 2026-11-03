@@ -127,7 +127,13 @@ export function siguienteRutina() {
   const f = faseActual();
   const ses = sesionesFase(f.id);
   const ultima = ses[ses.length - 1];
-  if (!ultima) return RUTINAS[f.rotacion[0]];
+  if (!ultima || !f.rotacion.includes(ultima.rutina)) {
+    // La primera de la fase es la que le toca al día de hoy (lunes jalón, martes pierna…)
+    const dias = diasEntreno();
+    const i = dias.indexOf(diaSemana(hoy()));
+    if (i >= 0 && f.rotacion.length % dias.length === 0) return RUTINAS[f.rotacion[i]];
+    return RUTINAS[f.rotacion[0]];
+  }
   const i = f.rotacion.indexOf(ultima.rutina);
   return RUTINAS[f.rotacion[(i + 1) % f.rotacion.length]];
 }
@@ -168,7 +174,7 @@ export function historial(ejId, excluirId = null) {
     for (const ej of s.ejercicios || []) {
       if (ej.ej !== ejId) continue;
       const hechas = (ej.series || []).filter((x) => x.hecho);
-      if (hechas.length) r.push({ fecha: s.fecha, sesion: s.id, series: hechas });
+      if (hechas.length) r.push({ fecha: s.fecha, sesion: s.id, series: hechas, plan: ej.plan || null });
     }
   }
   return r;
@@ -189,11 +195,23 @@ const pesoDe = (s) => Number(s.kg) || 0;
 
 export function sugerencia(item, ejId, excluirId = null) {
   const ej = EJ[ejId] || {};
-  const h = historial(ejId, excluirId);
-  const ultima = h[0];
   const rango = item.reps || item.seg || [8, 12];
   const [min, max] = rango;
   const porTiempo = !!item.seg;
+  const todo = historial(ejId, excluirId);
+  // La doble progresión compara contra la última vez con el mismo rango
+  // (en la fase pro el mismo ejercicio va pesado una semana y con volumen la otra).
+  const mismoRango = (x) => !x.plan || (porTiempo ? !!x.plan.seg : !!x.plan.reps && x.plan.reps[0] === min && x.plan.reps[1] === max);
+  const h = todo.filter(mismoRango);
+  const ultima = h[0];
+  if (!ultima && todo.length && !porTiempo && ej.inc > 0 && ej.carga !== 'corporal') {
+    const marca = Math.max(0, ...todo[0].series.map((s) => e1rm(s.kg, s.reps)));
+    if (marca > 0) {
+      const paso = ej.carga === 'mancuerna' ? 1 : 2.5;
+      const kg = Math.max(0, redondea(marca / (1 + Math.min(max, 15) / 30), paso));
+      return { tipo: 'nuevo', kg, texto: `Cambió el rango a ${min}–${max}: empieza con unos ${kg} kg (sale de tu marca) y ajusta.` };
+    }
+  }
   if (!ultima) {
     if (porTiempo) return { tipo: 'nuevo', kg: null, texto: `Aguanta de ${min} a ${max} segundos con el cuerpo recto.` };
     if (ej.carga === 'corporal') return { tipo: 'nuevo', kg: null, texto: `Haz de ${min} a ${max} repeticiones con buena técnica.` };
@@ -233,16 +251,20 @@ export function sugerencia(item, ejId, excluirId = null) {
   return { tipo: 'igual', kg: kgUsado, texto: `Mismo peso (${kgUsado} kg) y busca 1 repetición más por serie.` };
 }
 
-// Series de aproximación para el primer ejercicio pesado
-export function aproximacion(kgTrabajo, ej, faseNum) {
+// Series de aproximación para el primer ejercicio (el básico del día).
+// pesado = rango de 6 o menos: se agrega una de 3 al 85 %. Con barra nunca baja de la barra vacía (20 kg).
+export function aproximacion(kgTrabajo, ej, pesado = false) {
   if (!kgTrabajo || !ej || !['barra', 'maquina', 'mancuerna', 'polea'].includes(ej.carga)) return null;
   const paso = ej.carga === 'mancuerna' ? 1 : 2.5;
-  const s = [
-    [10, Math.max(0, redondea(kgTrabajo * 0.5, paso))],
-    [6, Math.max(0, redondea(kgTrabajo * 0.7, paso))],
-  ];
-  if (faseNum >= 3) s.push([3, redondea(kgTrabajo * 0.85, paso)]);
-  return s;
+  const minimo = ej.carga === 'barra' ? 20 : 0;
+  const pasos = pesado ? [[8, 0.5], [5, 0.7], [3, 0.85]] : [[10, 0.5], [6, 0.7]];
+  const s = [];
+  for (const [reps, pct] of pasos) {
+    const k = Math.max(minimo, redondea(kgTrabajo * pct, paso));
+    if (k >= kgTrabajo || (s.length && s[s.length - 1][1] === k)) continue;
+    s.push([reps, k]);
+  }
+  return s.length ? s : null;
 }
 
 export function requisitos(fase = faseActual()) {

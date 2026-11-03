@@ -131,10 +131,11 @@ function pantallaEjercicio(a, idx) {
   const primeroConPeso = a.ejercicios.findIndex((x) => ['barra', 'maquina', 'mancuerna', 'polea'].includes(EJ[x.ej].carga) && !x.plan.seg);
   if (idx === primeroConPeso) {
     const kgT = Number(item.series[0]?.kg) || null;
-    const ap = aproximacion(kgT, ej, FASE[a.fase]?.num || 1);
+    const pesado = !!(pl.reps && pl.reps[1] <= 6);
+    const ap = aproximacion(kgT, ej, pesado);
     aprox = ap
       ? `<div class="aviso-caja olivo"><b>Antes, series de aproximación:</b> ${ap.map(([r, k]) => `${r} reps con ${kg(k)}`).join(', ')}. No se anotan.</div>`
-      : `<div class="aviso-caja olivo">Antes de tus series haz 1 o 2 series ligeras de 10 para calentar el movimiento.</div>`;
+      : `<div class="aviso-caja olivo">Antes de tus series haz 1 o 2 series de 10 ${ej.carga === 'barra' ? 'con la barra vacía' : 'ligeras'} para calentar el movimiento.</div>`;
   }
   const alt = (pl.alt || []).length ? `<button class="enlace" data-a="ses:cambiar" data-i="${idx}">${icono('cambiar')} Cambiar</button>` : '';
   const cabecera = conKg
@@ -144,6 +145,7 @@ function pantallaEjercicio(a, idx) {
     <h1 class="ej-titulo">${esc(ej.nombre)}</h1>
     <div data-a="ses:verEj" data-id="${ej.id}" style="cursor:pointer">${demo(ej.id)}</div>
     <p class="meta-ej" style="margin-top:10px">${esc(textoMeta(pl))}</p>
+    ${pl.nota ? `<div class="aviso-caja">${esc(pl.nota)}</div>` : ''}
     ${bloqueUltima(item, a)}
     ${aprox}
     <div class="series">${cabecera}${item.series.map((s, i) => filaSerie(item, i, s, conKg)).join('')}</div>

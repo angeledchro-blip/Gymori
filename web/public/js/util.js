@@ -92,6 +92,21 @@ export function duracion(ms) {
   return `${h} h ${min % 60} min`;
 }
 
+// '18:30' → minutos desde la medianoche
+export function minutosDe(hhmm) {
+  const [h, m] = String(hhmm || '').split(':').map(Number);
+  return Number.isFinite(h) ? h * 60 + (Number.isFinite(m) ? m : 0) : null;
+}
+
+// '18:30' → '6:30 pm'
+export function hora12(hhmm) {
+  const t = minutosDe(hhmm);
+  if (t === null) return '';
+  const h = Math.floor(t / 60) % 24;
+  const m = t % 60;
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`;
+}
+
 // ---------- Números ----------
 export function num(v, dec = 0) {
   if (v === null || v === undefined || Number.isNaN(v)) return '—';

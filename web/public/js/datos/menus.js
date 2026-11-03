@@ -4,11 +4,12 @@
 
 const M = (id, tiempo, nombre, ingredientes, pasos, extra = {}) => ({ id, tiempo, nombre, ingredientes, pasos, ...extra });
 
+// En el orden del día (la hora de cada uno está en Ajustes → Horario)
 export const TIEMPOS = [
   ['desayuno', 'Desayuno'],
   ['comida', 'Comida'],
-  ['cena', 'Cena'],
   ['colacion', 'Colación'],
+  ['cena', 'Cena'],
 ];
 
 export const MENUS = [

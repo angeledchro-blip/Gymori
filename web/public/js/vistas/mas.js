@@ -1,5 +1,5 @@
 // Más: alarmas, ajustes, guía, respaldo y créditos.
-import { estado, marcar, exportarTodo, importarTodo, borrarTodo, guardarYa } from '../store.js';
+import { estado, marcar, exportarTodo, importarTodo, borrarTodo, guardarYa, horario, HORARIO_RECOMENDADO } from '../store.js';
 import { registrar, refrescar, ir } from '../nucleo.js';
 import { esc, hoy, diaCorto, nombreDia, abrirHoja, cerrarHoja, confirmar, aviso, uid, fechaLarga, claveFecha } from '../util.js';
 import { icono } from '../iconos.js';
@@ -15,7 +15,7 @@ function renderMas() {
     ['camino', 'disco', 'Camino de principiante a pro', 'Tus fases y lo que falta para subir'],
     ['ejercicios', 'pesa', 'Ejercicios', 'Fotos del movimiento y técnica'],
     ['plan', 'plan', 'Plan de comida de la semana', 'Menús con comida de Guasave'],
-    ['super', 'carrito', 'Lista del súper', 'Lo que cuesta en Bodega, Walmart, Ley y Oxxo'],
+    ['super', 'carrito', 'Lista del súper', 'Lo que cuesta en Bodega, Walmart, Ley, Oxxo y Similares'],
     ['precios', 'etiqueta', 'Precios', 'Corrige los precios de tu tienda'],
     ['aprende', 'libro', 'Aprende', 'Calorías, proteína, técnica y suplementos'],
     ['ajustes', 'usuario', 'Perfil y ajustes', 'Peso meta, días de gym, respaldo'],
@@ -152,6 +152,13 @@ function renderAjustes() {
     <div class="chips dias">${[1, 2, 3, 4, 5, 6, 7].map((d) => `<button class="chip ${dias.includes(d) ? 'activo' : ''}" data-a="aj:dia" data-v="${d}">${diaCorto(d)}</button>`).join('')}</div>
     <div class="fila" style="margin-top:8px"><span class="fila-cuerpo"><span class="fila-titulo">Pitido al terminar el descanso</span></span><label class="interruptor"><input type="checkbox" data-c="aj:sonido" ${c.sonidoDescanso !== false ? 'checked' : ''}><span></span></label></div>
 
+    <h2 class="seccion">Horario</h2>
+    <p class="tenue chico">El recomendado es para levantarte a las 4:45, ir al gym temprano y entrar a la escuela a las 12. Sale en Hoy y en Comida.</p>
+    <div class="dos-columnas">${[['desayuno', 'Desayuno'], ['comida', 'Comida'], ['colacion', 'Colación'], ['cena', 'Cena'], ['dormir', 'Dormir']]
+      .map(([k, n]) => `<label class="campo"><span>${n}</span><input type="time" data-c="aj:horario" data-k="${k}" value="${esc(horario()[k])}"></label>`)
+      .join('')}</div>
+    <button class="enlace" data-a="aj:horarioReset">Volver al horario recomendado</button>
+
     <h2 class="seccion">Pendientes del día</h2>
     <div class="chips">${CHECK_NOMBRES.map(([k, n]) => `<button class="chip ${checks.includes(k) ? 'activo' : ''}" data-a="aj:check" data-v="${k}">${n}</button>`).join('')}</div>
     <label class="campo"><span>Meta de agua (vasos de 250 ml)</span><input data-c="aj:agua" inputmode="numeric" value="${c.aguaMeta || 12}"></label>
@@ -170,7 +177,7 @@ function renderAjustes() {
     </div>
 
     <h2 class="seccion">Créditos</h2>
-    <p class="tenue chico">Fotos de ejercicios: Free Exercise DB (dominio público). Letra Barlow (SIL Open Font License). Lector de códigos: ZXing (Apache 2.0). Datos de productos: Open Food Facts (ODbL). Precios: tiendas en línea de Walmart y Bodega Aurrera, folletos de Casa Ley en Sinaloa y Oxxo en Rappi, noviembre 2026.</p>`;
+    <p class="tenue chico">Fotos de ejercicios: Free Exercise DB (dominio público). Letra Barlow (SIL Open Font License). Lector de códigos: ZXing (Apache 2.0). Datos de productos: Open Food Facts (ODbL). Precios: tiendas en línea de Walmart, Bodega Aurrera y Farmacias Similares, folletos de Casa Ley en Sinaloa y Oxxo en Rappi, noviembre 2026.</p>`;
 }
 
 // ---------- Aprende ----------
@@ -225,6 +232,18 @@ registrar({
     if (nuevos.length < 1) return;
     c.dias[c.fase] = nuevos;
     marcar('config');
+    refrescar();
+  },
+  'aj:horario': (el) => {
+    if (!/^\d{2}:\d{2}$/.test(el.value)) return;
+    estado.config.horario = { ...horario(), [el.dataset.k]: el.value };
+    marcar('config');
+    aviso('Horario guardado.');
+  },
+  'aj:horarioReset': () => {
+    estado.config.horario = { ...HORARIO_RECOMENDADO };
+    marcar('config');
+    aviso('Listo: horario recomendado.');
     refrescar();
   },
   'aj:sonido': (el) => {

@@ -214,6 +214,14 @@ body.sin-nav #nav { display: none; }
 .vasos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .vaso { width: 34px; height: 42px; border: 2px solid var(--borde); border-radius: 4px 4px 9px 9px; background: transparent; cursor: pointer; position: relative; padding: 0; }
 .vaso.lleno { border-color: var(--petroleo); background: linear-gradient(to top, var(--petroleo) 78%, transparent 78%); }
+.hora-tiempo { font-family: var(--texto); font-size: 14px; font-weight: 600; color: var(--mostaza); margin-left: 6px; }
+.horario { list-style: none; margin: 0; padding: 0; }
+.horario li { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--borde); }
+.horario li:last-child { border-bottom: 0; }
+.horario .hora { font-family: var(--display); font-weight: 700; font-size: 21px; min-width: 84px; color: var(--hueso); white-space: nowrap; }
+.horario li.pasado .hora, .horario li.pasado .fila-titulo { color: var(--ceniza); }
+.horario li.siguiente .hora { color: var(--mostaza); }
+.horario li.siguiente .fila-titulo::after { content: 'sigue'; margin-left: 8px; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--mostaza-fondo); color: var(--mostaza); vertical-align: 2px; }
 .check-fila { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--borde); cursor: pointer; width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; }
 .check-fila:last-child { border-bottom: 0; }
 .caja-check { width: 28px; height: 28px; border-radius: 8px; border: 2px solid var(--borde); display: grid; place-items: center; flex: none; }

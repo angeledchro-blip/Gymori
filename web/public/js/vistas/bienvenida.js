@@ -9,7 +9,7 @@ import * as nativo from '../nativo.js';
 let paso = 0;
 const b = {
   nombre: '', sexo: 'h', edad: '', nacimiento: '', estatura: '', peso: '', meta: '75', ritmo: 'normal', actividad: 1.45,
-  dias: [1, 3, 5], hora: '05:00', fase: 'f1',
+  dias: [1, 2, 3, 4, 5], hora: '05:00', fase: 'f1',
 };
 
 const ACTIVIDAD = [
@@ -76,13 +76,13 @@ function pasoHtml() {
   if (paso === 4) {
     return `<div class="cuerpo">${puntos()}
       <h1 class="cabeza-titulo">Tu semana de gym</h1>
-      <span class="campo-etiqueta">¿Qué días vas? (para empezar, 3 días)</span>
+      <span class="campo-etiqueta">¿Qué días vas? (tu rutina es de lunes a viernes)</span>
       <div class="chips dias">${[1, 2, 3, 4, 5, 6, 7].map((d) => `<button class="chip ${b.dias.includes(d) ? 'activo' : ''}" data-a="onb:dia" data-v="${d}">${diaCorto(d)}</button>`).join('')}</div>
       <label class="campo"><span>Hora de la alarma esos días</span><input type="time" data-campo="hora" value="${esc(b.hora)}" /></label>
       <span class="campo-etiqueta">¿Dónde empiezas?</span>
       <div class="opciones">
         ${FASES.slice(0, 2)
-          .map((f) => `<button class="opcion ${b.fase === f.id ? 'activa' : ''}" data-a="onb:fase" data-v="${f.id}"><b>Fase ${f.num}: ${f.nombre}</b><span>${f.id === 'f1' ? 'Si tienes un buen rato sin entrenar. Recomendado.' : 'Si entrenaste seguido en los últimos 2 meses.'}</span></button>`)
+          .map((f) => `<button class="opcion ${b.fase === f.id ? 'activa' : ''}" data-a="onb:fase" data-v="${f.id}"><b>Fase ${f.num}: ${f.nombre}</b><span>${f.id === 'f1' ? 'Si todavía no dominas la técnica de sentadilla, rumano y banca con barra. Recomendado.' : 'Si ya dominas los básicos con barra y vas a meterle peso.'}</span></button>`)
           .join('')}
       </div>
     </div>
@@ -100,7 +100,7 @@ function pasoHtml() {
       <div class="cifra"><span class="numero">${o.g} g</span><small>de grasa</small></div>
     </div>
     <p class="tenue">Gastas unas ${o.tdee.toLocaleString('es-MX')} kcal al día; comiendo ${o.kcal.toLocaleString('es-MX')} bajarías alrededor de ${Math.abs(o.esperado).toFixed(1)} kg por semana. La app lo ajusta según cómo vayas.</p>
-    <p class="tenue">Empiezas en la fase ${b.fase === 'f1' ? '1 (Regreso)' : '2 (Principiante)'} con ${b.dias.length} días de gym.</p>
+    <p class="tenue">Empiezas en la fase ${b.fase === 'f1' ? '1 (Técnica)' : '2 (Fuerza e hipertrofia)'} con ${b.dias.length} días de gym.</p>
   </div>
   <div class="fila-botones"><button class="boton secundario" data-a="onb:ant">Atrás</button><button class="boton primario" data-a="onb:fin">Empezar</button></div>`;
 }

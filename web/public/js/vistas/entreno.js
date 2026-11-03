@@ -10,6 +10,8 @@ import { faseActual, siguienteRutina, semanaFase, sesionesFase, requisitos, dias
 import { iniciarSesion } from './sesion.js';
 import * as nativo from '../nativo.js';
 
+const NOMBRE_DIA = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
 function filaEjercicio(pl) {
   const e = EJ[pl.ej];
   const rango = pl.seg ? `${pl.seg[0]}–${pl.seg[1]} s` : `${pl.reps[0]}${pl.reps[1] !== pl.reps[0] ? '–' + pl.reps[1] : ''}`;
@@ -35,15 +37,17 @@ function renderEntreno() {
     </button>
 
     <div class="seccion-fila"><h2>${activa ? 'En curso' : 'Siguiente'}: ${esc(activa ? activa.nombre : sig.nombre)}</h2></div>
-    <ul class="lista">${(activa ? RUTINAS[activa.rutina] : sig).ejercicios.map(filaEjercicio).join('')}</ul>
+    <ul class="lista">${(activa ? activa.ejercicios.map((x) => ({ ...x.plan, ej: x.ej })) : sig.ejercicios).map(filaEjercicio).join('')}</ul>
     <div class="pila-botones"><button class="boton primario" data-a="${activa ? 'ir' : 'ent:empezar'}" data-ruta="sesion" data-id="${sig.id}">${activa ? 'Continuar entreno' : 'Empezar ' + esc(sig.nombre)}</button></div>
 
     <h2 class="seccion">Rutinas de esta fase</h2>
-    <p class="tenue chico">Se van turnando solas. Si quieres hacer otra hoy, escógela aquí.</p>
+    <p class="tenue chico">Se van turnando solas: si faltas un día, sigues con la que tocaba. Si quieres hacer otra hoy, escógela aquí.</p>
     <ul class="lista">${f.rotacion
-      .map((id) => {
+      .map((id, i) => {
         const r = RUTINAS[id];
-        return `<li class="fila"><span class="fila-cuerpo"><span class="fila-titulo">${esc(r.nombre)}</span><span class="fila-sub" style="display:block">${r.ejercicios.length} ejercicios, unos ${r.min} min${r.cardio ? `, ${r.cardio.min} min de cardio` : ''}</span></span>
+        const dias = diasEntreno();
+        const dia = f.rotacion.length % dias.length === 0 ? `${NOMBRE_DIA[dias[i % dias.length]]}${f.rotacion.length > dias.length ? (i < dias.length ? ', semana 1' : ', semana 2') : ''}: ` : '';
+        return `<li class="fila"><span class="fila-cuerpo"><span class="fila-titulo">${esc(r.nombre)}</span><span class="fila-sub" style="display:block">${esc(dia)}${r.ejercicios.length} ejercicios, unos ${r.min} min${r.cardio ? `, ${r.cardio.min} min de cardio` : ''}</span></span>
           <button class="boton secundario chico" data-a="ent:empezar" data-id="${id}" ${activa ? 'disabled' : ''}>Hacer</button></li>`;
       })
       .join('')}</ul>
@@ -114,6 +118,7 @@ function renderEjercicio(id) {
     .map((x) => Math.max(...x.series.map((s) => e1rm(s.kg, s.reps))));
   return `<header class="cabeza"><span class="cabeza-fecha"><button class="enlace" data-a="atras">Regresar</button></span><h1 class="cabeza-titulo">${esc(e.nombre)}</h1></header>
     <div class="demo">${imagenes(id).map((s) => `<img src="${s}" alt="">`).join('')}<span class="demo-marca">Inicio y final del movimiento</span></div>
+    ${e.img && EJ[e.img] ? `<p class="tenue mini" style="margin-top:6px">Las fotos son de ${esc(EJ[e.img].nombre.toLowerCase())}, que es casi el mismo movimiento.</p>` : ''}
     <p class="tenue" style="margin-top:10px">${esc(e.musculos)}. ${esc(e.equipo)}.</p>
     <h2 class="seccion">Cómo se hace</h2>
     <ol style="padding-left:20px;margin:0">${e.pasos.map((p) => `<li style="margin-bottom:6px">${esc(p)}</li>`).join('')}</ol>
@@ -129,11 +134,11 @@ function renderEjercicio(id) {
 
 // ---------- Biblioteca ----------
 const GRUPOS = [
-  ['Pierna y glúteo', ['prensa', 'extension', 'femoral_acostado', 'femoral_sentado', 'sentadilla_goblet', 'sentadilla_barra', 'hack', 'rumano_mancuernas', 'rumano_barra', 'hip_thrust', 'puente_barra', 'zancadas', 'bulgara', 'step_up', 'pantorrilla_pie', 'pantorrilla_sentado', 'abductor', 'peso_muerto', 'hiperextension']],
-  ['Pecho', ['press_pecho_maquina', 'press_banca', 'press_inclinado', 'aperturas', 'cruces_polea', 'lagartijas', 'lagartijas_inclinadas']],
-  ['Espalda', ['jalon', 'jalon_cerrado', 'remo_polea', 'remo_mancuerna', 'remo_barra', 'remo_t', 'dominadas', 'dominadas_asistidas', 'pullover_polea', 'face_pull']],
-  ['Hombro', ['press_hombro_maquina', 'press_hombro_mancuernas', 'press_militar', 'laterales', 'pajaros_maquina', 'encogimientos']],
-  ['Brazos', ['curl_mancuernas', 'curl_martillo', 'curl_barra_ez', 'curl_predicador', 'triceps_polea', 'triceps_cuerda', 'triceps_tras_nuca', 'fondos', 'fondos_maquina', 'press_frances']],
+  ['Pierna y glúteo', ['sentadilla_barra', 'pendulo', 'prensa', 'prensa_alta', 'hack', 'sentadilla_goblet', 'extension', 'femoral_acostado', 'femoral_sentado', 'femoral_pie', 'rumano_barra', 'rumano_mancuernas', 'peso_muerto', 'hip_thrust', 'puente_barra', 'abductor', 'zancadas', 'step_up', 'pantorrilla_pie', 'pantorrilla_sentado', 'pantorrilla_prensa', 'hiperextension']],
+  ['Pecho', ['press_banca', 'press_inclinado', 'press_inclinado_maquina', 'press_pecho_maquina', 'aperturas', 'cruces_polea', 'lagartijas', 'lagartijas_inclinadas']],
+  ['Espalda', ['remo_pecho', 'jalon_supino', 'jalon', 'jalon_cerrado', 'remo_polea', 'remo_mancuerna', 'remo_barra', 'remo_t', 'dominadas', 'dominadas_asistidas', 'pullover_polea', 'face_pull']],
+  ['Hombro', ['press_hombro_maquina', 'press_hombro_mancuernas', 'press_militar', 'laterales', 'laterales_polea', 'pajaros_maquina', 'encogimientos']],
+  ['Brazos y antebrazo', ['curl_barra_ez', 'curl_inclinado', 'curl_mancuernas', 'curl_martillo', 'curl_predicador', 'curl_muneca', 'curl_muneca_inv', 'triceps_barra_v', 'triceps_unilateral', 'triceps_polea', 'triceps_cuerda', 'triceps_tras_nuca', 'fondos', 'fondos_maquina', 'press_frances']],
   ['Abdomen', ['plancha', 'plancha_lateral', 'dead_bug', 'crunch_polea', 'crunch_maquina', 'elevacion_piernas', 'elevacion_piernas_banco', 'pallof']],
   ['Cardio', ['caminadora', 'bici', 'eliptica', 'escaladora', 'remo_cardio', 'cuerda']],
   ['Calentamiento y estiramientos', EJERCICIOS.filter((e) => e.carga === 'movilidad').map((e) => e.id)],

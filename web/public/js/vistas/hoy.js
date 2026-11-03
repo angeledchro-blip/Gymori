@@ -1,7 +1,7 @@
 // Pantalla principal: qué toca hoy, cómo vas con la comida, agua, checklist, peso y nivel.
-import { estado, marcar, diario } from '../store.js';
+import { estado, marcar, diario, horario } from '../store.js';
 import { registrar, refrescar, ir } from '../nucleo.js';
-import { esc, hoy, fechaLarga, num, kg, abrirHoja, cerrarHoja, aviso, sumarDias, diaSemana } from '../util.js';
+import { esc, hoy, fechaLarga, num, kg, abrirHoja, cerrarHoja, aviso, sumarDias, diaSemana, hora12, minutosDe } from '../util.js';
 import { icono } from '../iconos.js';
 import { barraPesas, discoKcal, barraMacro } from '../graficos.js';
 import {
@@ -18,6 +18,46 @@ const CHECKS = {
   sueno: ['Dormí 7 horas o más', ''],
   cardio: ['Cardio del día', '20 a 30 min en zona 2'],
 };
+
+// Horas de sueño entre la hora de dormir y la alarma
+function horasSueno(h) {
+  const dormir = minutosDe(h.dormir);
+  const despertar = minutosDe(estado.config.horaAlarma || '04:45');
+  if (dormir === null || despertar === null) return null;
+  return ((despertar - dormir + 1440) % 1440) / 60;
+}
+
+function bloqueHorario() {
+  const h = horario();
+  const entrena = esDiaDeEntreno();
+  const sueno = horasSueno(h);
+  const filas = [
+    ...(estado.config.horaAlarma ? [['gym', estado.config.horaAlarma, entrena ? 'Alarma y gym' : 'Despertar', entrena ? 'Calentamiento, rutina y cardio' : '']] : []),
+    ['desayuno', h.desayuno, 'Desayuno', entrena ? 'Después del gym' : ''],
+    ['comida', h.comida, 'Comida', 'Antes de la escuela'],
+    ['colacion', h.colacion, 'Colación', 'En la escuela'],
+    ['cena', h.cena, 'Cena', 'Al llegar a casa; 2 a 3 h antes de dormir'],
+    ['dormir', h.dormir, 'Dormir', `${sueno ? `${textoHoras(sueno)} hasta tu alarma. ` : ''}Pantallas fuera a las ${hora12(minutosAHora(minutosDe(h.dormir) - 30))}`],
+  ];
+  const d = new Date();
+  const ahora = d.getHours() * 60 + d.getMinutes();
+  const sig = filas.find((f) => minutosDe(f[1]) > ahora);
+  return `<div class="seccion-fila"><h2>Tu horario</h2><a class="enlace" href="#/ajustes">Cambiar</a></div>
+    <ul class="horario">${filas
+      .map(([id, hhmm, titulo, sub]) => `<li class="${sig && sig[0] === id ? 'siguiente' : minutosDe(hhmm) <= ahora ? 'pasado' : ''}"><span class="hora">${esc(hora12(hhmm))}</span><span class="fila-cuerpo"><span class="fila-titulo">${esc(titulo)}</span>${sub ? `<span class="fila-sub" style="display:block">${esc(sub)}</span>` : ''}</span></li>`)
+      .join('')}</ul>`;
+}
+
+function textoHoras(horas) {
+  const h = Math.floor(horas);
+  const m = Math.round((horas - h) * 60);
+  return m ? `${h} h ${m} min` : `${h} h`;
+}
+
+function minutosAHora(m) {
+  const t = ((m % 1440) + 1440) % 1440;
+  return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+}
 
 function saludo() {
   const h = new Date().getHours();
@@ -112,7 +152,7 @@ function bloqueChecklist() {
     ${lista
       .map((k) => {
         const [t, sub] = CHECKS[k] || [k, ''];
-        const subt = k === 'pasos' ? `${num(pasos)} pasos` : sub;
+        const subt = k === 'pasos' ? `${num(pasos)} pasos` : k === 'sueno' ? `Hora de dormir: ${hora12(horario().dormir)}` : sub;
         const hecho = !!(d.checks || {})[k];
         return `<button class="check-fila ${hecho ? 'hecho' : ''}" data-a="hoy:check" data-v="${k}">
           <span class="caja-check">${hecho ? icono('check') : ''}</span>
@@ -160,6 +200,7 @@ function render() {
     </header>
     ${bloqueEntreno()}
     ${bloqueComida()}
+    ${bloqueHorario()}
     ${bloqueAgua()}
     ${bloqueChecklist()}
     ${bloquePeso()}
