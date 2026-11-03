@@ -180,6 +180,16 @@ export function historial(ejId, excluirId = null) {
   return r;
 }
 
+// El peso más alto de la última vez que hiciste el ejercicio (y cuántas reps con él)
+export function pesoAnterior(ejId) {
+  const h = historial(ejId)[0];
+  if (!h) return null;
+  const kg = Math.max(0, ...h.series.map((s) => Number(s.kg) || 0));
+  if (!kg) return null;
+  const reps = Math.max(0, ...h.series.filter((s) => (Number(s.kg) || 0) === kg).map((s) => Number(s.reps) || 0));
+  return { kg, reps, fecha: h.fecha };
+}
+
 export function mejorMarca(ejId, excluirId = null) {
   let mejor = null;
   for (const h of historial(ejId, excluirId)) {

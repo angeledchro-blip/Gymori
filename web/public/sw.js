@@ -1,6 +1,6 @@
 // Generado por scripts/lista-sw.mjs — no lo edites a mano.
 // Guarda la app en el teléfono para que funcione sin señal en el gym.
-const VERSION = '16083e49c6';
+const VERSION = '3631ed9477';
 const CACHE = 'gym-' + VERSION;
 const ARCHIVOS = [
   "./",
@@ -207,6 +207,7 @@ const ARCHIVOS = [
   "img/ej/zancadas-0.webp",
   "img/ej/zancadas-1.webp",
   "index.html",
+  "js/agenda.js",
   "js/app.js",
   "js/calc.js",
   "js/datos/alimentos.js",
@@ -218,8 +219,10 @@ const ARCHIVOS = [
   "js/iconos.js",
   "js/nativo.js",
   "js/nucleo.js",
+  "js/resumen.js",
   "js/store.js",
   "js/util.js",
+  "js/vistas/agenda.js",
   "js/vistas/bienvenida.js",
   "js/vistas/comida.js",
   "js/vistas/entreno.js",

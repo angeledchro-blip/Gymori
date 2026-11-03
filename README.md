@@ -5,8 +5,12 @@ con precios de Guasave y una alarma que solo se apaga dejando presionado un bot�
 
 ## Qué trae
 
-- **Hoy**: qué rutina toca, calorías y macros que te quedan, horario del día (desayuno, comida, colación, cena y hora de dormir),
-  agua, pendientes del día (creatina, pasos, proteína, sueño), peso y nivel.
+- **Hoy (tu agenda del día)**: qué rutina toca y el peso de la vez pasada en cada máquina, calorías y macros que te quedan,
+  horario (despertar, desayuno antes del gym, gym, comida, escuela, colación, cena y hora de dormir), escuela y servicio social
+  (tareas, exámenes y entregas de la tesis con cuenta regresiva y aviso del reporte mensual), agua, pendientes del día
+  (creatina, pasos, proteína, sueño, regar a Maboroshi e Ibuki, guitarra), peso y nivel.
+- **Resumen de la mañana**: notificación diaria (5:00 am) con el gym, la escuela, la agenda y los pendientes del día;
+  la web calcula los textos de 7 días y Android los muestra aunque la app esté cerrada.
 - **Entreno**: rutina de lunes a viernes (jalón, pierna cuádriceps, empuje, hombro y torso, pierna posterior) con un básico
   al inicio de cada día, en 5 fases (Técnica → Fuerza e hipertrofia → Intermedio → Avanzado → Pro) con requisitos para subir, calentamiento,
   series con peso de la vez pasada y sugerencia de cuánto subir (doble progresión), descanso con vibración,

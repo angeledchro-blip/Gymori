@@ -13,6 +13,8 @@ import { vistaComida, vistaBuscar, vistaPlan, vistaSuper, vistaPrecios } from '.
 import { vistaEscaner } from './vistas/escaner.js';
 import { vistaProgreso } from './vistas/progreso.js';
 import { vistaMas, vistaAlarmas, vistaAjustes, vistaAprende } from './vistas/mas.js';
+import { vistaAgenda } from './vistas/agenda.js';
+import { sincronizarResumen } from './resumen.js';
 
 const VISTAS = {
   hoy: vistaHoy,
@@ -32,6 +34,7 @@ const VISTAS = {
   alarmas: vistaAlarmas,
   ajustes: vistaAjustes,
   aprende: vistaAprende,
+  agenda: vistaAgenda,
 };
 
 const TABS = [
@@ -81,6 +84,8 @@ function pintar(nombre, params, mantenerScroll) {
   }
   if (mantenerScroll) window.scrollTo(0, y);
   else window.scrollTo(0, 0);
+  // El resumen de las 5 am se recalcula con lo último (rutina, agenda, horario)
+  sincronizarResumen();
 }
 
 function render() {
@@ -155,6 +160,7 @@ document.addEventListener('visibilitychange', () => {
     diaCargado = hoy();
     refrescar();
   }
+  if (document.visibilityState === 'hidden') sincronizarResumen(true);
 });
 
 // ---------- Android ----------
@@ -175,7 +181,9 @@ function eventoNativo(nombre, datos) {
     aviso('Tono cambiado.');
     refrescar();
   } else if (nombre === 'permisos' || nombre === 'reanudar') {
-    if (actual && ['alarmas', 'hoy'].includes(actual.nombre)) refrescar();
+    if (actual && ['alarmas', 'hoy', 'ajustes'].includes(actual.nombre)) refrescar();
+  } else if (nombre === 'ver' && typeof datos === 'string' && /^[a-z]+$/.test(datos)) {
+    ir(datos);
   }
 }
 window.__nativo = (nombre, datosJson) => {

@@ -61,6 +61,11 @@
             android:name=".AlarmaReceiver"
             android:exported="false" />
 
+        <!-- Resumen del día (notificación de la mañana) -->
+        <receiver
+            android:name=".ResumenReceiver"
+            android:exported="false" />
+
         <!-- Vuelve a programar las alarmas al prender el teléfono, al actualizar la app o si cambia la hora -->
         <receiver
             android:name=".ArranqueReceiver"

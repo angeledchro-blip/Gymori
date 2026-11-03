@@ -6,7 +6,7 @@ import { icono } from '../iconos.js';
 import { EJ, EJERCICIOS, imagenes, urlVideo } from '../datos/ejercicios.js';
 import { FASES, FASE, RUTINAS } from '../datos/programa.js';
 import { barraCamino, chispa } from '../graficos.js';
-import { faseActual, siguienteRutina, semanaFase, sesionesFase, requisitos, diasEntreno, historial, mejorMarca, e1rm, esDescarga } from '../calc.js';
+import { faseActual, siguienteRutina, semanaFase, sesionesFase, requisitos, diasEntreno, historial, mejorMarca, e1rm, esDescarga, pesoAnterior } from '../calc.js';
 import { iniciarSesion } from './sesion.js';
 import * as nativo from '../nativo.js';
 
@@ -15,9 +15,10 @@ const NOMBRE_DIA = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'S
 function filaEjercicio(pl) {
   const e = EJ[pl.ej];
   const rango = pl.seg ? `${pl.seg[0]}–${pl.seg[1]} s` : `${pl.reps[0]}${pl.reps[1] !== pl.reps[0] ? '–' + pl.reps[1] : ''}`;
+  const antes = pl.seg ? null : pesoAnterior(e.id);
   return `<a class="fila" href="#/ejercicio/${e.id}" style="color:inherit;text-decoration:none">
     <img class="miniatura" src="${imagenes(e.id)[0]}" alt="" loading="lazy">
-    <span class="fila-cuerpo"><span class="fila-titulo">${esc(e.nombre)}</span><span class="fila-sub" style="display:block">${pl.series} × ${rango}${pl.lado ? ' por lado' : ''}</span></span>
+    <span class="fila-cuerpo"><span class="fila-titulo">${esc(e.nombre)}</span><span class="fila-sub" style="display:block">${pl.series} × ${rango}${pl.lado ? ' por lado' : ''}${antes ? `, la vez pasada ${kg(antes.kg)}` : ''}</span></span>
     ${icono('flecha', 'flecha')}
   </a>`;
 }

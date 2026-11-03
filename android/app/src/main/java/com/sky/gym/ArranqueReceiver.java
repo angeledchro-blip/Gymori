@@ -4,10 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-/** Al prender el teléfono, actualizar la app o cambiar la hora, vuelve a programar las alarmas. */
+/** Al prender el teléfono, actualizar la app o cambiar la hora, vuelve a programar las alarmas y el resumen. */
 public class ArranqueReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Alarmas.programarTodas(context);
+        Resumen.programar(context);
     }
 }

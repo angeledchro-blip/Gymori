@@ -3,12 +3,21 @@
 import { datos } from './nativo.js';
 import { hoy } from './util.js';
 
-const VERSION_DATOS = 2;
+const VERSION_DATOS = 3;
 
 const LV = [1, 2, 3, 4, 5];
 
-// Horario recomendado para levantarte 4:45, gym temprano y escuela de 12 a 5.
-export const HORARIO_RECOMENDADO = { desayuno: '07:15', comida: '11:15', colacion: '15:00', cena: '18:00', dormir: '20:45' };
+// Tu día: te levantas a las 5 (la alarma), desayunas antes del gym, entrenas de 7:45 a 10,
+// comes después de bañarte, escuela de 12 a 5 y a dormir 8:45.
+export const HORARIO_RECOMENDADO = {
+  desayuno: '06:00', gym: '07:45', comida: '11:00', escuela: '12:00', salida: '17:00',
+  colacion: '15:00', cena: '18:00', dormir: '20:45',
+};
+// El de la versión 1.1 (gym a las 5): si nunca lo cambiaste, se pasa al nuevo
+const HORARIO_V2 = { desayuno: '07:15', comida: '11:15', colacion: '15:00', cena: '18:00', dormir: '20:45' };
+
+// Tu servicio social: del 24 de agosto de 2026 al 21 de febrero de 2027, con reporte cada mes
+export const SS_DEFECTO = { avisos: true, dia: 24, inicio: '2026-08-24', fin: '2027-02-21', entregados: {} };
 
 const DEFECTOS = {
   perfil: () => ({
@@ -19,9 +28,12 @@ const DEFECTOS = {
     onboarding: false, fase: 'f1', faseInicio: hoy(),
     dias: { f1: [...LV], f2: [...LV], f3: [...LV], f4: [...LV], f5: [...LV] },
     horario: { ...HORARIO_RECOMENDADO },
+    resumen: { activo: true, hora: '05:00' },
     tienda: 'bodega', aguaMeta: 12, apiBase: '', sonidoDescanso: true, horaAlarma: '05:00',
-    checklist: ['creatina', 'pasos', 'proteina', 'sueno'],
+    checklist: ['creatina', 'pasos', 'proteina', 'sueno', 'plantas', 'guitarra'],
   }),
+  // Agenda: tareas, exámenes y entregas con fecha; y el reporte mensual del servicio social
+  agenda: () => ({ pendientes: [], ss: { ...SS_DEFECTO, entregados: {} } }),
   entreno: () => ({ sesiones: [], activa: null }),
   peso: () => ({ registros: [], cintura: [] }),
   comida: () => ({ dias: {} }),
@@ -74,6 +86,18 @@ function migrar(v, guardarMeta = false) {
   if (v < 2) {
     // v2: la rutina pasó a ser tu split de lunes a viernes en todas las fases
     estado.config.dias = { f1: [...LV], f2: [...LV], f3: [...LV], f4: [...LV], f5: [...LV] };
+    marcar('config');
+  }
+  if (v < 3) {
+    // v3: desayuno antes del gym (7:45), escuela en el horario y checklist de la agenda
+    const h = estado.config.horario || {};
+    for (const [k, viejo] of Object.entries(HORARIO_V2)) {
+      if (!h[k] || h[k] === viejo) h[k] = HORARIO_RECOMENDADO[k];
+    }
+    estado.config.horario = { ...HORARIO_RECOMENDADO, ...h };
+    const l = Array.isArray(estado.config.checklist) ? estado.config.checklist : [];
+    for (const k of ['plantas', 'guitarra']) if (!l.includes(k)) l.push(k);
+    estado.config.checklist = l;
     marcar('config');
   }
   if (guardarMeta || v < VERSION_DATOS) {

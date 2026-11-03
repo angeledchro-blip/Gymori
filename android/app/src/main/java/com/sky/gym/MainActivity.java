@@ -343,6 +343,12 @@ public class MainActivity extends Activity {
             i.removeExtra("alarma_apagada");
             puente.encolar("alarmaApagada", null);
         }
+        // Desde una notificación (resumen del día, alarma): abrir esa pantalla
+        String ver = i.getStringExtra("ver");
+        if (ver != null && ver.matches("[a-z]{1,20}")) {
+            i.removeExtra("ver");
+            puente.encolar("ver", org.json.JSONObject.quote(ver));
+        }
     }
 
     @Override

@@ -6,11 +6,13 @@ import { icono } from '../iconos.js';
 import { FASES, FASE } from '../datos/programa.js';
 import { GUIA } from '../datos/guia.js';
 import { objetivos, edad, siguienteRutina } from '../calc.js';
+import { sincronizarResumen } from '../resumen.js';
 import * as nativo from '../nativo.js';
 
 // ---------- Menú ----------
 function renderMas() {
   const filas = [
+    ['agenda', 'calendario', 'Agenda', 'Tareas, exámenes, entregas y servicio social'],
     ['alarmas', 'alarma', 'Alarma de gym', 'Se apaga dejando presionado 10 segundos'],
     ['camino', 'disco', 'Camino de principiante a pro', 'Tus fases y lo que falta para subir'],
     ['ejercicios', 'pesa', 'Ejercicios', 'Fotos del movimiento y técnica'],
@@ -132,7 +134,8 @@ function renderAjustes() {
   const f = FASE[c.fase];
   const dias = c.dias[c.fase] || f.diasDefault;
   const checks = c.checklist || [];
-  const CHECK_NOMBRES = [['creatina', 'Creatina'], ['pasos', 'Pasos'], ['proteina', 'Proteína'], ['sueno', 'Dormir 7 h'], ['cardio', 'Cardio']];
+  const CHECK_NOMBRES = [['creatina', 'Creatina'], ['pasos', 'Pasos'], ['proteina', 'Proteína'], ['sueno', 'Dormir 7 h'], ['plantas', 'Regar plantas'], ['guitarra', 'Guitarra'], ['cardio', 'Cardio']];
+  const r = c.resumen || { activo: true, hora: '05:00' };
   return `<header class="cabeza"><span class="cabeza-fecha"><a href="#/mas">Más</a></span><h1 class="cabeza-titulo">Perfil y ajustes</h1></header>
     <h2 class="seccion">Tú</h2>
     <label class="campo"><span>Nombre</span><input data-c="aj:perfil" data-k="nombre" value="${esc(p.nombre)}"></label>
@@ -153,11 +156,17 @@ function renderAjustes() {
     <div class="fila" style="margin-top:8px"><span class="fila-cuerpo"><span class="fila-titulo">Pitido al terminar el descanso</span></span><label class="interruptor"><input type="checkbox" data-c="aj:sonido" ${c.sonidoDescanso !== false ? 'checked' : ''}><span></span></label></div>
 
     <h2 class="seccion">Horario</h2>
-    <p class="tenue chico">El recomendado es para levantarte a las 4:45, ir al gym temprano y entrar a la escuela a las 12. Sale en Hoy y en Comida.</p>
-    <div class="dos-columnas">${[['desayuno', 'Desayuno'], ['comida', 'Comida'], ['colacion', 'Colación'], ['cena', 'Cena'], ['dormir', 'Dormir']]
+    <p class="tenue chico">El recomendado: te levantas a las 5, desayunas antes del gym, entrenas de 7:45 a 10, comes después de bañarte y entras a la escuela a las 12. Sale en Hoy, en Comida y en tu resumen. La hora de despertar es la de tu alarma.</p>
+    <div class="dos-columnas">${[['desayuno', 'Desayuno'], ['gym', 'Gym'], ['comida', 'Comida'], ['escuela', 'Entras a la escuela'], ['salida', 'Sales de la escuela'], ['colacion', 'Colación'], ['cena', 'Cena'], ['dormir', 'Dormir']]
       .map(([k, n]) => `<label class="campo"><span>${n}</span><input type="time" data-c="aj:horario" data-k="${k}" value="${esc(horario()[k])}"></label>`)
       .join('')}</div>
     <button class="enlace" data-a="aj:horarioReset">Volver al horario recomendado</button>
+
+    <h2 class="seccion">Resumen de la mañana</h2>
+    <p class="tenue chico">Una notificación con lo del día: qué toca en el gym y con cuánto peso, escuela, lo que viene en tu agenda, el reporte del servicio social y tus pendientes. ${nativo.enApp() ? '' : 'Solo funciona en la app de Android.'}</p>
+    <div class="fila"><span class="fila-cuerpo"><span class="fila-titulo">Mandarme el resumen</span></span><label class="interruptor"><input type="checkbox" data-c="aj:resumen" ${r.activo !== false ? 'checked' : ''}><span></span></label></div>
+    <label class="campo"><span>A qué hora</span><input type="time" data-c="aj:resumenHora" value="${esc(r.hora || '05:00')}"></label>
+    ${nativo.enApp() ? '<button class="boton secundario chico" data-a="aj:resumenProbar">Ver cómo llega</button>' : ''}
 
     <h2 class="seccion">Pendientes del día</h2>
     <div class="chips">${CHECK_NOMBRES.map(([k, n]) => `<button class="chip ${checks.includes(k) ? 'activo' : ''}" data-a="aj:check" data-v="${k}">${n}</button>`).join('')}</div>
@@ -239,6 +248,22 @@ registrar({
     estado.config.horario = { ...horario(), [el.dataset.k]: el.value };
     marcar('config');
     aviso('Horario guardado.');
+  },
+  'aj:resumen': (el) => {
+    estado.config.resumen = { ...(estado.config.resumen || { hora: '05:00' }), activo: el.checked };
+    marcar('config');
+    aviso(el.checked ? 'Te llega cada mañana.' : 'Resumen apagado.');
+  },
+  'aj:resumenHora': (el) => {
+    if (!/^\d{2}:\d{2}$/.test(el.value)) return;
+    estado.config.resumen = { ...(estado.config.resumen || { activo: true }), hora: el.value };
+    marcar('config');
+    aviso('Hora del resumen guardada.');
+  },
+  'aj:resumenProbar': () => {
+    sincronizarResumen(true);
+    const res = nativo.resumen.probar();
+    aviso(res && res.ok ? 'Revisa tus notificaciones.' : 'No pude mandar la notificación. Revisa el permiso de notificaciones.');
   },
   'aj:horarioReset': () => {
     estado.config.horario = { ...HORARIO_RECOMENDADO };

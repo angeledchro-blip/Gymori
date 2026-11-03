@@ -127,6 +127,26 @@ public class PuenteNativo {
         Alarmas.guardarMensaje(ctx, texto);
     }
 
+    // ---------- Resumen del día ----------
+
+    @JavascriptInterface
+    public String resumenGuardar(String json) {
+        try {
+            Resumen.guardar(ctx, new JSONObject(json));
+            JSONObject r = new JSONObject();
+            r.put("ok", true);
+            r.put("proximo", Resumen.proximo(ctx));
+            return r.toString();
+        } catch (JSONException e) {
+            return "{\"error\":\"No se pudo guardar el resumen.\"}";
+        }
+    }
+
+    @JavascriptInterface
+    public String resumenProbar() {
+        return Resumen.mostrar(ctx) ? "{\"ok\":true}" : "{\"error\":\"Sin permiso de notificaciones.\"}";
+    }
+
     @JavascriptInterface
     public void elegirTono() {
         act.runOnUiThread(() -> {

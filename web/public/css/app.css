@@ -197,6 +197,19 @@ body.sin-nav #nav { display: none; }
 .hoy-entreno .detalle { color: var(--polvo); font-size: 15px; }
 .barra-pesas { display: block; width: 100%; height: 64px; margin: 14px 0 12px; }
 .hoy-entreno .boton { width: 100%; }
+.pesos-hoy { margin: 4px 0 14px; }
+.pesos-hoy summary { cursor: pointer; color: var(--mostaza); font-weight: 600; font-size: 15px; padding: 6px 0; }
+.pesos-hoy ul { list-style: none; margin: 4px 0 0; padding: 0; }
+.pesos-hoy li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid #3a2f22; font-size: 15px; color: var(--polvo); }
+.pesos-hoy li:last-child { border-bottom: 0; }
+.pesos-hoy li b { color: var(--hueso); font-family: var(--display); font-weight: 700; font-size: 17px; white-space: nowrap; }
+.pesos-hoy li b.nuevo { color: var(--ceniza); font-family: var(--texto); font-weight: 500; font-size: 14px; }
+.agenda-fila { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--borde); }
+.agenda-fila .caja-check { background: none; cursor: pointer; color: inherit; padding: 0; }
+.agenda-fila.hecho .caja-check { background: var(--olivo); border-color: var(--olivo); color: #1a1a0b; }
+.agenda-fila.hecho .fila-titulo { text-decoration: line-through; color: var(--ceniza); }
+.agenda-texto { background: none; border: 0; padding: 0; text-align: left; color: inherit; cursor: pointer; font: inherit; }
+.agenda-fila .etiqueta { flex: none; }
 .hecho-hoy { display: flex; align-items: center; gap: 10px; color: var(--olivo); font-weight: 600; }
 
 .resumen-dia { display: grid; grid-template-columns: 132px 1fr; gap: 16px; align-items: center; margin-top: 8px; }

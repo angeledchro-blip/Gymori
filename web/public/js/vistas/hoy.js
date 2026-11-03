@@ -1,4 +1,5 @@
-// Pantalla principal: qué toca hoy, cómo vas con la comida, agua, checklist, peso y nivel.
+// Pantalla principal (tu agenda del día): qué toca en el gym, comida, horario, escuela y servicio social,
+// agua, checklist, peso y nivel.
 import { estado, marcar, diario, horario } from '../store.js';
 import { registrar, refrescar, ir } from '../nucleo.js';
 import { esc, hoy, fechaLarga, num, kg, abrirHoja, cerrarHoja, aviso, sumarDias, diaSemana, hora12, minutosDe } from '../util.js';
@@ -6,16 +7,21 @@ import { icono } from '../iconos.js';
 import { barraPesas, discoKcal, barraMacro } from '../graficos.js';
 import {
   objetivos, totalesDia, siguienteRutina, esDiaDeEntreno, sesionDe, faseActual, semanaFase, esDescarga,
-  tendencia, sugerenciaAjuste, nivel, rachaSemanas, pesoActual, diasEntreno,
+  tendencia, sugerenciaAjuste, nivel, rachaSemanas, pesoActual, diasEntreno, pesoAnterior, historial,
 } from '../calc.js';
+import { EJ } from '../datos/ejercicios.js';
+import { proximos, reporteSS } from '../agenda.js';
 import * as nativo from '../nativo.js';
 import { iniciarSesion } from './sesion.js';
+import { filaPendiente, filaReporte } from './agenda.js';
 
 const CHECKS = {
   creatina: ['Creatina', '3 a 5 g, a cualquier hora'],
   pasos: ['Pasos', ''],
   proteina: ['Llegué a mi proteína', ''],
   sueno: ['Dormí 7 horas o más', ''],
+  plantas: ['Regar a Maboroshi e Ibuki', 'Tus melones'],
+  guitarra: ['Un rato de guitarra', 'Aunque sean 15 minutos de púa'],
   cardio: ['Cardio del día', '20 a 30 min en zona 2'],
 };
 
@@ -29,16 +35,19 @@ function horasSueno(h) {
 
 function bloqueHorario() {
   const h = horario();
-  const entrena = esDiaDeEntreno();
+  const entrena = esDiaDeEntreno() && !sesionDe(hoy()).length;
+  const escuela = diaSemana(hoy()) <= 5;
   const sueno = horasSueno(h);
   const filas = [
-    ...(estado.config.horaAlarma ? [['gym', estado.config.horaAlarma, entrena ? 'Alarma y gym' : 'Despertar', entrena ? 'Calentamiento, rutina y cardio' : '']] : []),
-    ['desayuno', h.desayuno, 'Desayuno', entrena ? 'Después del gym' : ''],
-    ['comida', h.comida, 'Comida', 'Antes de la escuela'],
-    ['colacion', h.colacion, 'Colación', 'En la escuela'],
+    ...(estado.config.horaAlarma ? [['despertar', estado.config.horaAlarma, 'Despertar', 'Tu alarma']] : []),
+    ['desayuno', h.desayuno, 'Desayuno', entrena ? 'Antes del gym, para no entrenar en ayunas' : ''],
+    ...(entrena ? [['gym', h.gym, 'Gym', 'Calentamiento, rutina y cardio']] : []),
+    ['comida', h.comida, 'Comida', entrena && escuela ? 'Después del gym y de bañarte, antes de la escuela' : escuela ? 'Antes de la escuela' : ''],
+    ...(escuela ? [['escuela', h.escuela, 'Escuela', `Hasta las ${hora12(h.salida)}`]] : []),
+    ['colacion', h.colacion, 'Colación', escuela ? 'En la escuela' : ''],
     ['cena', h.cena, 'Cena', 'Al llegar a casa; 2 a 3 h antes de dormir'],
     ['dormir', h.dormir, 'Dormir', `${sueno ? `${textoHoras(sueno)} hasta tu alarma. ` : ''}Pantallas fuera a las ${hora12(minutosAHora(minutosDe(h.dormir) - 30))}`],
-  ];
+  ].sort((a, b) => minutosDe(a[1]) - minutosDe(b[1]));
   const d = new Date();
   const ahora = d.getHours() * 60 + d.getMinutes();
   const sig = filas.find((f) => minutosDe(f[1]) > ahora);
@@ -97,6 +106,7 @@ function bloqueEntreno() {
       <div class="nombre-rutina">${esc(sig.nombre)}</div>
       <div class="detalle">${sig.ejercicios.length} ejercicios, unos ${sig.min} minutos. Fase ${f.num}, semana ${semanaFase()}.</div>
       ${barraPesas(sig.ejercicios)}
+      ${pesosDeLaVezPasada(sig)}
       <button class="boton primario" data-a="hoy:empezar">Empezar entreno</button>
     </section>`;
   }
@@ -115,6 +125,35 @@ function bloqueEntreno() {
     <div class="detalle">Camina o haz 20 a 30 minutos de cardio suave. ${prox ? `Toca ${esc(sig.nombre)} ${prox}.` : ''}</div>
     <div class="fila-botones"><button class="boton secundario" data-a="hoy:empezar">Entrenar de todos modos</button></div>
   </section>`;
+}
+
+// Peso de la vez pasada en cada máquina de la rutina que toca
+function pesosDeLaVezPasada(rutina) {
+  const filas = rutina.ejercicios.map((pl) => {
+    const e = EJ[pl.ej];
+    let dato = 'nuevo';
+    if (pl.seg) {
+      const h = historial(pl.ej)[0];
+      if (h) dato = `${Math.max(0, ...h.series.map((s) => Number(s.seg) || 0))} s`;
+    } else {
+      const p = pesoAnterior(pl.ej);
+      if (p) dato = `${kg(p.kg)} × ${p.reps}`;
+    }
+    return `<li><span>${esc(e.nombre)}</span><b class="${dato === 'nuevo' ? 'nuevo' : ''}">${esc(dato)}</b></li>`;
+  });
+  return `<details class="pesos-hoy" open><summary>Pesos de la vez pasada</summary><ul>${filas.join('')}</ul></details>`;
+}
+
+// Escuela, tesis y servicio social: lo que viene en 2 semanas y el reporte mensual
+function bloqueAgenda() {
+  const lista = proximos({ dias: 14, max: 5 });
+  const r = reporteSS();
+  const conReporte = r && r.faltan <= 7;
+  return `<div class="seccion-fila"><h2>Escuela y servicio</h2><a class="enlace" href="#/agenda">Ver agenda</a></div>
+    ${conReporte ? filaReporte(r) : ''}
+    ${lista.map((p) => filaPendiente(p)).join('')}
+    ${!lista.length && !conReporte ? '<p class="tenue chico" style="margin:0 0 6px">Sin tareas, exámenes ni entregas en las próximas 2 semanas.</p>' : ''}
+    <button class="enlace" data-a="age:nuevo">${icono('sumar')} Agregar tarea, examen o entrega</button>`;
 }
 
 function bloqueComida() {
@@ -201,6 +240,7 @@ function render() {
     ${bloqueEntreno()}
     ${bloqueComida()}
     ${bloqueHorario()}
+    ${bloqueAgenda()}
     ${bloqueAgua()}
     ${bloqueChecklist()}
     ${bloquePeso()}

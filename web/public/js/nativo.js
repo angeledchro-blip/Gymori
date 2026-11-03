@@ -63,6 +63,12 @@ export const alarmas = {
   tono: () => llamar('tonoActual') || 'Tono de alarma del teléfono',
 };
 
+// Resumen del día (notificación de las 5 am): { activo, hora, dias: { 'AAAA-MM-DD': { titulo, texto } } }
+export const resumen = {
+  guardar: (datosJson) => json(llamar('resumenGuardar', datosJson), null),
+  probar: () => json(llamar('resumenProbar'), null),
+};
+
 export const permisos = {
   estado: () => json(llamar('permisos'), null),
   pedir: (tipo) => llamar('pedirPermiso', tipo),
