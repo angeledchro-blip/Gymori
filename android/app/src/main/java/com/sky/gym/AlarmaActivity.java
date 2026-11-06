@@ -24,6 +24,9 @@ import java.util.Locale;
  * el disco 10 segundos. Los botones de volumen y de atrás no hacen nada.
  */
 public class AlarmaActivity extends Activity {
+    /** true mientras la pantalla de la alarma está a la vista (así no sale encima la ventana emergente). */
+    static volatile boolean visible = false;
+
     private static final int TIERRA = 0xFF17110D;
     private static final int HUESO = 0xFFEFE6D6;
     private static final int POLVO = 0xFFB6A795;
@@ -135,12 +138,22 @@ public class AlarmaActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        visible = true;
+        VentanaAlarma.quitar(this);
         handler.post(reloj);
     }
 
     @Override
     protected void onPause() {
+        visible = false;
         handler.removeCallbacks(reloj);
+        // Si te sales sin apagarla (botón de inicio), la ventana emergente se queda encima
+        if (AlarmaServicio.sonando && !isFinishing()) {
+            final android.content.Context app = getApplicationContext();
+            handler.postDelayed(() -> {
+                if (AlarmaServicio.sonando && !visible) VentanaAlarma.mostrar(app);
+            }, 800);
+        }
         super.onPause();
     }
 

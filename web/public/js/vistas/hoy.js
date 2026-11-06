@@ -14,6 +14,7 @@ import { proximos, reporteSS } from '../agenda.js';
 import * as nativo from '../nativo.js';
 import { iniciarSesion } from './sesion.js';
 import { filaPendiente, filaReporte } from './agenda.js';
+import { faltanParaLaAlarma } from './mas.js';
 
 const CHECKS = {
   creatina: ['Creatina', '3 a 5 g, a cualquier hora'],
@@ -127,6 +128,16 @@ function bloqueEntreno() {
   </section>`;
 }
 
+// Si a la alarma le falta un permiso para que salga su ventana, se avisa arriba
+function avisoAlarma() {
+  if (!nativo.enApp()) return '';
+  const alarmas = nativo.alarmas.leer();
+  if (!alarmas || !(alarmas.alarmas || []).some((a) => a.activa)) return '';
+  const faltan = faltanParaLaAlarma(nativo.permisos.estado());
+  if (!faltan.length) return '';
+  return `<a class="aviso-caja" href="#/alarmas" style="display:block;color:inherit;text-decoration:none"><b>Tu alarma puede sonar sin que salga su ventana.</b> Falta activar: ${esc(faltan.join(', '))}. Toca aquí para arreglarlo.</a>`;
+}
+
 // Peso de la vez pasada en cada máquina de la rutina que toca
 function pesosDeLaVezPasada(rutina) {
   const filas = rutina.ejercicios.map((pl) => {
@@ -237,6 +248,7 @@ function render() {
       <div class="cabeza-fila"><span class="cabeza-fecha">${esc(fechaLarga(hoy()))}</span>${alarma}</div>
       <h1 class="cabeza-titulo">${saludo()}${nombre}</h1>
     </header>
+    ${avisoAlarma()}
     ${bloqueEntreno()}
     ${bloqueComida()}
     ${bloqueHorario()}

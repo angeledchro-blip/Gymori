@@ -1,6 +1,6 @@
 // Generado por scripts/lista-sw.mjs — no lo edites a mano.
 // Guarda la app en el teléfono para que funcione sin señal en el gym.
-const VERSION = '3631ed9477';
+const VERSION = '59967c9604';
 const CACHE = 'gym-' + VERSION;
 const ARCHIVOS = [
   "./",

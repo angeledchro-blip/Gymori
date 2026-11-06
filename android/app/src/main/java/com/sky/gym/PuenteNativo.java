@@ -184,13 +184,33 @@ public class PuenteNativo {
             r.put("pantallaCompleta", Build.VERSION.SDK_INT < 34 || (nm != null && nm.canUseFullScreenIntent()));
             PowerManager pm = (PowerManager) ctx.getSystemService(Context.POWER_SERVICE);
             r.put("bateria", pm != null && pm.isIgnoringBatteryOptimizations(ctx.getPackageName()));
+            r.put("ventanas", VentanaAlarma.puede(ctx));
             String marca = (Build.MANUFACTURER + " " + Build.BRAND).toLowerCase();
-            r.put("xiaomi", marca.contains("xiaomi") || marca.contains("redmi") || marca.contains("poco"));
+            boolean xiaomi = marca.contains("xiaomi") || marca.contains("redmi") || marca.contains("poco");
+            r.put("xiaomi", xiaomi);
+            if (xiaomi) {
+                // Permisos propios de HyperOS/MIUI (si no se pueden leer, quedan sin dato)
+                Boolean bloqueo = permisoXiaomi(10020);    // Mostrar en pantalla de bloqueo
+                Boolean segundoPlano = permisoXiaomi(10021); // Mostrar ventanas emergentes en segundo plano
+                if (bloqueo != null) r.put("xiaomiBloqueo", bloqueo);
+                if (segundoPlano != null) r.put("xiaomiSegundoPlano", segundoPlano);
+            }
             r.put("camara", ctx.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED);
             r.put("sdk", Build.VERSION.SDK_INT);
             return r.toString();
         } catch (JSONException e) {
             return "{}";
+        }
+    }
+
+    private Boolean permisoXiaomi(int op) {
+        try {
+            android.app.AppOpsManager ops = (android.app.AppOpsManager) ctx.getSystemService(Context.APP_OPS_SERVICE);
+            java.lang.reflect.Method m = android.app.AppOpsManager.class.getMethod("checkOpNoThrow", int.class, int.class, String.class);
+            Object modo = m.invoke(ops, op, android.os.Process.myUid(), ctx.getPackageName());
+            return modo instanceof Integer && (Integer) modo == android.app.AppOpsManager.MODE_ALLOWED;
+        } catch (Throwable t) {
+            return null;
         }
     }
 
@@ -218,6 +238,10 @@ public class PuenteNativo {
                         abrir(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
                     }
                     break;
+                case "ventanas":
+                    // En Xiaomi la pantalla de "Otros permisos" trae juntas las 3 ventanas; si no, la de Android
+                    if (!abrirPermisosXiaomi(pkg)) abrir(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, paquete));
+                    break;
                 case "xiaomi":
                     Intent miui = new Intent("miui.intent.action.APP_PERM_EDITOR");
                     miui.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity");
@@ -232,6 +256,19 @@ public class PuenteNativo {
                     abrir(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, paquete));
             }
         });
+    }
+
+    private boolean abrirPermisosXiaomi(String pkg) {
+        String marca = (Build.MANUFACTURER + " " + Build.BRAND).toLowerCase();
+        if (!(marca.contains("xiaomi") || marca.contains("redmi") || marca.contains("poco"))) return false;
+        Intent miui = new Intent("miui.intent.action.APP_PERM_EDITOR");
+        miui.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity");
+        miui.putExtra("extra_pkgname", pkg);
+        if (abrir(miui)) return true;
+        Intent viejo = new Intent("miui.intent.action.APP_PERM_EDITOR");
+        viejo.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.AppPermissionsEditorActivity");
+        viejo.putExtra("extra_pkgname", pkg);
+        return abrir(viejo);
     }
 
     private boolean abrir(Intent i) {

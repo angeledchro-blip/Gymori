@@ -5,8 +5,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
@@ -25,7 +27,9 @@ import android.os.VibratorManager;
 
 /**
  * Suena la alarma (con volumen que va subiendo y vibración) hasta que en AlarmaActivity
- * se deja presionado el botón 10 segundos. Se apaga sola a los 15 minutos.
+ * (o en la ventana emergente) se deja presionado el botón 10 segundos. Se apaga sola a los 15 minutos.
+ * Si Android/HyperOS no deja abrir la pantalla de la alarma, sale la ventana emergente encima de todo,
+ * y cada que prendes o desbloqueas el teléfono se vuelve a intentar abrir la pantalla.
  */
 public class AlarmaServicio extends Service {
     static final String CANAL = "alarma_gym";
@@ -36,6 +40,7 @@ public class AlarmaServicio extends Service {
 
     static volatile boolean sonando = false;
     static volatile String etiquetaActual = "Alarma de gym";
+    private static AlarmaServicio instancia;
 
     private MediaPlayer player;
     private Ringtone ringtone;
@@ -61,6 +66,39 @@ public class AlarmaServicio extends Service {
 
     private final Runnable autoApagar = this::detener;
 
+    // Si a los segundos no se ve la pantalla de la alarma, sale la ventana emergente
+    private final Runnable revisarPantalla = () -> {
+        if (sonando && !AlarmaActivity.visible) VentanaAlarma.mostrar(this);
+    };
+
+    // Al prender la pantalla o desbloquear: otra vez la pantalla de la alarma (o la ventana)
+    private final BroadcastReceiver pantallaReceptor = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (!sonando || AlarmaActivity.visible) return;
+            abrirPantalla();
+            handler.removeCallbacks(revisarPantalla);
+            handler.postDelayed(revisarPantalla, 900);
+        }
+    };
+    private boolean receptorActivo = false;
+
+    /** Apagar desde la ventana emergente (sin depender de que Android deje iniciar el servicio). */
+    static void apagarYa(Context c) {
+        AlarmaServicio s = instancia;
+        if (s != null) {
+            new Handler(Looper.getMainLooper()).post(s::detener);
+            return;
+        }
+        Intent detener = new Intent(c, AlarmaServicio.class);
+        detener.setAction(ACCION_DETENER);
+        try {
+            c.startService(detener);
+        } catch (RuntimeException ignored) {
+            // nada
+        }
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -68,6 +106,7 @@ public class AlarmaServicio extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        instancia = this;
         if (intent != null && ACCION_DETENER.equals(intent.getAction())) {
             detener();
             return START_NOT_STICKY;
@@ -101,9 +140,26 @@ public class AlarmaServicio extends Service {
             sonar();
             vibrar();
             handler.postDelayed(autoApagar, AUTO_APAGADO_MS);
+            escucharPantalla();
         }
         abrirPantalla();
+        handler.removeCallbacks(revisarPantalla);
+        handler.postDelayed(revisarPantalla, 2500);
         return START_STICKY;
+    }
+
+    private void escucharPantalla() {
+        if (receptorActivo) return;
+        IntentFilter f = new IntentFilter();
+        f.addAction(Intent.ACTION_SCREEN_ON);
+        f.addAction(Intent.ACTION_USER_PRESENT);
+        try {
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(pantallaReceptor, f, Context.RECEIVER_NOT_EXPORTED);
+            else registerReceiver(pantallaReceptor, f);
+            receptorActivo = true;
+        } catch (RuntimeException ignored) {
+            // sin esto igual queda la ventana y la notificación
+        }
     }
 
     static Notification notificacion(Context c, String etiqueta) {
@@ -112,14 +168,16 @@ public class AlarmaServicio extends Service {
         PendingIntent pi = PendingIntent.getActivity(c, 1, pantalla, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder b = new Notification.Builder(c, CANAL)
             .setSmallIcon(R.drawable.ic_notificacion)
-            .setContentTitle(etiqueta)
-            .setContentText("Abre y mantén presionado el botón 10 segundos para apagarla")
+            .setContentTitle("⏰ Gymori: " + etiqueta)
+            .setContentText("Está sonando tu alarma. Toca aquí y deja presionado el disco 10 segundos.")
+            .setStyle(new Notification.BigTextStyle().bigText("Está sonando tu alarma de Gymori. Toca aquí y deja presionado el disco 10 segundos para apagarla."))
             .setCategory(Notification.CATEGORY_ALARM)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(false)
             .setContentIntent(pi)
-            .setFullScreenIntent(pi, true);
+            .setFullScreenIntent(pi, true)
+            .addAction(new Notification.Action.Builder(null, "Abrir la alarma", pi).build());
         if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
         return b.build();
     }
@@ -266,6 +324,15 @@ public class AlarmaServicio extends Service {
 
     private void detener() {
         sonando = false;
+        VentanaAlarma.quitar(this);
+        if (receptorActivo) {
+            try {
+                unregisterReceiver(pantallaReceptor);
+            } catch (RuntimeException ignored) {
+                // ya estaba fuera
+            }
+            receptorActivo = false;
+        }
         getSharedPreferences("alarmas", Context.MODE_PRIVATE).edit().putLong("sonandoDesde", 0).apply();
         handler.removeCallbacksAndMessages(null);
         liberarPlayer();
@@ -299,6 +366,7 @@ public class AlarmaServicio extends Service {
     @Override
     public void onDestroy() {
         if (sonando) detener();
+        if (instancia == this) instancia = null;
         super.onDestroy();
     }
 }

@@ -43,8 +43,20 @@ function textoDias(dias) {
   return s.map((d) => diaCorto(d)).join(', ');
 }
 
-function filaPermiso(id, ok, titulo, texto) {
-  return `<li class="fila"><span class="fila-cuerpo"><span class="fila-titulo">${esc(titulo)}</span><span class="fila-sub" style="display:block">${esc(texto)}</span></span>${ok ? `<span class="permiso-ok">${icono('check')}</span>` : `<button class="boton chico secundario" data-a="ala:permiso" data-v="${id}">Activar</button>`}</li>`;
+function filaPermiso(id, ok, titulo, texto, boton = 'Activar') {
+  return `<li class="fila"><span class="fila-cuerpo"><span class="fila-titulo">${esc(titulo)}</span><span class="fila-sub" style="display:block">${esc(texto)}</span></span>${ok ? `<span class="permiso-ok">${icono('check')}</span>` : `<button class="boton chico secundario" data-a="ala:permiso" data-v="${id}">${esc(boton)}</button>`}</li>`;
+}
+
+// Lo que le falta a la alarma para que salga su pantalla o la ventana emergente (también lo usa Hoy)
+export function faltanParaLaAlarma(per) {
+  if (!per) return [];
+  const f = [];
+  if (per.notificaciones === false) f.push('notificaciones');
+  if (per.ventanas === false) f.push('ventana emergente');
+  if (per.pantallaCompleta === false) f.push('pantalla completa');
+  if (per.xiaomiBloqueo === false) f.push('mostrar en pantalla de bloqueo');
+  if (per.xiaomiSegundoPlano === false) f.push('ventanas emergentes en segundo plano');
+  return f;
 }
 
 function renderAlarmas() {
@@ -71,13 +83,16 @@ function renderAlarmas() {
     <h2 class="seccion">Tono</h2>
     <div class="cabeza-fila"><span class="tenue">${esc(nativo.alarmas.tono())}</span><button class="enlace" data-a="ala:tono">Cambiar</button></div>
     <h2 class="seccion">Para que no falle</h2>
-    <p class="tenue chico">Android (y más en Xiaomi) cierra apps en segundo plano. Activa todo esto una vez.</p>
+    <p class="tenue chico">Cuando suena, sale la pantalla de la alarma con el disco de 10 segundos. Si Android no la deja salir, sale una ventana emergente encima de todo, y al prender o desbloquear el teléfono la vuelve a sacar: así sabes qué está sonando. Activa todo esto una vez y luego dale a "Probar" con el teléfono bloqueado.</p>
     <ul class="lista">
       ${filaPermiso('notificaciones', per.notificaciones, 'Notificaciones', 'Sin esto la alarma no puede mostrarse.')}
-      ${filaPermiso('alarmasExactas', per.alarmasExactas, 'Alarmas exactas', 'Para que suene a la hora en punto.')}
+      ${filaPermiso('ventanas', per.ventanas, 'Ventana emergente', per.xiaomi ? 'En la pantalla que se abre activa "Mostrar ventanas emergentes", "Mostrar ventanas emergentes mientras se ejecuta en segundo plano" y "Mostrar en pantalla de bloqueo".' : 'Para que la alarma salga encima de cualquier app.')}
+      ${per.xiaomi && 'xiaomiSegundoPlano' in per ? filaPermiso('ventanas', per.xiaomiSegundoPlano, 'Xiaomi: ventanas emergentes en segundo plano', 'Para que se abra la pantalla de la alarma aunque no estés en la app.') : ''}
+      ${per.xiaomi && 'xiaomiBloqueo' in per ? filaPermiso('ventanas', per.xiaomiBloqueo, 'Xiaomi: mostrar en pantalla de bloqueo', 'Para que salga aunque el teléfono esté bloqueado.') : ''}
       ${filaPermiso('pantallaCompleta', per.pantallaCompleta, 'Pantalla completa', 'Para que aparezca aunque el teléfono esté bloqueado.')}
+      ${filaPermiso('alarmasExactas', per.alarmasExactas, 'Alarmas exactas', 'Para que suene a la hora en punto.')}
       ${filaPermiso('bateria', per.bateria, 'Sin límite de batería', 'Que Android no la duerma en la noche.')}
-      ${per.xiaomi ? filaPermiso('xiaomi', false, 'Xiaomi: inicio automático y ventanas', 'En la pantalla que se abre activa "Inicio automático", "Mostrar en pantalla de bloqueo" y "Abrir ventanas nuevas en segundo plano".') : ''}
+      ${per.xiaomi ? filaPermiso('xiaomi', false, 'Xiaomi: inicio automático', 'En la pantalla que se abre activa "Inicio automático" (si ya está, no le muevas).', 'Revisar') : ''}
     </ul>`;
 }
 
